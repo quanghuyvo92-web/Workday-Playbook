@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Vina Company — Workday Learning Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600;12..96,700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="assets/style.css"/>
+<style>
+html,body{height:100%;overflow:hidden;}
+body{display:flex;flex-direction:column;}
+
+/* HERO */
+.hero{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px 24px;background:var(--bg);position:relative;overflow:hidden;}
+
+/* Subtle background pattern */
+.hero::before{
+  content:'';position:absolute;inset:0;
+  background-image:radial-gradient(circle at 20% 50%,rgba(99,102,241,0.04) 0%,transparent 50%),
+                   radial-gradient(circle at 80% 20%,rgba(29,78,216,0.04) 0%,transparent 50%),
+                   radial-gradient(circle at 60% 80%,rgba(124,58,237,0.03) 0%,transparent 50%);
+  pointer-events:none;
+}
+
+.hero-tag{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:4px 12px;border-radius:20px;
+  background:var(--surface);border:1px solid var(--border2);
+  font-size:11px;font-weight:600;color:var(--text2);
+  margin-bottom:20px;
+}
+.hero-tag-dot{width:6px;height:6px;border-radius:50%;background:#1D4ED8;}
+
+.hero-title{
+  font-size:36px;font-weight:700;letter-spacing:-0.04em;
+  color:var(--text);line-height:1.15;margin-bottom:10px;
+  max-width:560px;
+}
+
+.hero-punch{
+  font-size:15px;color:var(--text2);margin-bottom:36px;
+  font-style:italic;
+}
+
+/* TOOL CARDS */
+.tool-cards{
+  display:flex;gap:14px;margin-top:0;
+  justify-content:center;flex-wrap:wrap;
+}
+.tool-card{
+  background:var(--surface);
+  border:1.5px solid var(--border2);
+  border-radius:12px;
+  padding:18px 20px;
+  width:220px;
+  text-align:left;
+  cursor:pointer;
+  text-decoration:none;
+  color:var(--text);
+  transition:all .2s;
+  display:block;
+}
+.tool-card:hover{
+  border-color:#1D4ED8;
+  box-shadow:0 4px 20px rgba(29,78,216,0.1);
+  transform:translateY(-2px);
+}
+.tc-icon{font-size:22px;margin-bottom:10px;}
+.tc-title{font-size:13px;font-weight:700;margin-bottom:4px;}
+.tc-desc{font-size:11px;color:var(--text2);line-height:1.55;}
+.tc-arrow{font-size:11px;color:var(--text3);margin-top:10px;display:block;}
+
+.start-btn{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:12px 28px;border-radius:10px;
+  background:var(--text);color:#fff;
+  font-family:var(--font);font-size:13px;font-weight:600;
+  cursor:pointer;border:none;transition:all .2s;
+  margin-bottom:40px;
+}
+.start-btn:hover{background:#333;transform:translateY(-1px);}
+
+/* STORY OVERLAY */
+.story-overlay{
+  position:fixed;inset:0;
+  background:rgba(26,24,20,0.7);
+  z-index:500;display:none;
+  align-items:center;justify-content:center;
+  backdrop-filter:blur(8px);
+}
+.story-overlay.show{display:flex;}
+.story-card{
+  background:var(--surface);border-radius:20px;
+  padding:36px 40px;width:500px;max-width:92vw;
+  box-shadow:0 40px 80px rgba(0,0,0,0.2);
+  animation:popIn .35s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes popIn{from{opacity:0;transform:scale(.9) translateY(20px);}to{opacity:1;transform:scale(1) translateY(0);}}
+.sc-step{font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:8px;}
+.sc-icon{font-size:40px;display:block;margin-bottom:14px;}
+.sc-title{font-size:22px;font-weight:700;letter-spacing:-.03em;margin-bottom:10px;line-height:1.2;}
+.sc-body{font-size:13px;color:var(--text2);line-height:1.75;margin-bottom:18px;}
+.sc-body strong{color:var(--text);}
+.sc-hl{background:var(--surface2);border-left:3px solid #1D4ED8;border-radius:0 8px 8px 0;padding:10px 14px;font-size:12px;color:var(--text2);margin-bottom:18px;line-height:1.6;}
+.sc-footer{display:flex;align-items:center;justify-content:space-between;}
+.sc-dots{display:flex;gap:5px;}
+.sc-dot{width:5px;height:5px;border-radius:50%;background:var(--border2);transition:all .2s;}
+.sc-dot.active{width:18px;border-radius:2px;background:#1D4ED8;}
+.sc-actions{display:flex;gap:8px;align-items:center;}
+.btn{padding:8px 18px;border-radius:8px;font-family:var(--font);font-size:12px;font-weight:600;cursor:pointer;border:none;transition:all .15s;}
+.btn-outline{background:transparent;border:1px solid var(--border2);color:var(--text2);}
+.btn-outline:hover{background:var(--surface2);}
+.btn-dark{background:var(--text);color:#fff;}
+.btn-dark:hover{background:#333;}
+.btn-dim{background:none;border:none;color:var(--text3);font-size:11px;cursor:pointer;padding:4px 6px;font-family:var(--font);}
+</style>
+</head>
+<body>
+
+<script src="assets/nav.js"></script>
+
+<!-- HERO -->
+<div class="hero" id="hero">
+  <div class="hero-tag"><div class="hero-tag-dot"></div>Workday Learning Hub</div>
+  <h1 class="hero-title">Vina Company<br>Workday Hub</h1>
+  <p class="hero-punch">"Explore Workday your way — before go-live day."</p>
+
+  <button class="start-btn" onclick="startStory()">▶ Start guided tour</button>
+
+  <div class="tool-cards" id="tool-cards">
+    <a class="tool-card" href="playbook/index.html">
+      <div class="tc-icon">🏢</div>
+      <div class="tc-title">Main Concept</div>
+      <div class="tc-desc">Explore Workday's core concepts through Vina Company's org structure and data.</div>
+      <span class="tc-arrow">Open →</span>
+    </a>
+    <a class="tool-card" href="mapping-tool/index.html">
+      <div class="tc-icon">📋</div>
+      <div class="tc-title">Data Mapping Tool</div>
+      <div class="tc-desc">Prepare your HR data for Workday migration. Enter, validate, and export to Excel.</div>
+      <span class="tc-arrow">Open →</span>
+    </a>
+  </div>
+</div>
+
+<!-- STORY OVERLAY -->
+<div class="story-overlay" id="story-overlay">
+  <div class="story-card" id="story-card"></div>
+</div>
+
+<script>
+const STORY = [
+  {icon:'👋',
+   title:'Welcome to Vina Company\'s Workday Hub',
+   body:'This is your space to <strong>explore Workday concepts</strong> before your implementation begins. Everything here uses a fictional Vietnamese company — so the real thing feels familiar from day one.',
+   hl:null},
+  {icon:'🏭',
+   title:'Meet Vina Company',
+   body:'Vina Company is a Vietnamese FMCG manufacturer with <strong>51 employees</strong> across Hồ Chí Minh City, Hà Nội, and Bình Dương. They\'re going live on Workday HCM.',
+   hl:'All the data you\'ll see is fictional — but it\'s designed to mirror the real structure of a Vietnamese manufacturer.'},
+  {icon:'🔗',
+   title:'Everything in Workday is connected',
+   body:'The most important thing to understand before go-live: <strong>nothing in Workday lives alone.</strong> Change a Job Profile and it ripples to Positions. Add a worker without a Position and Workday says no.',
+   hl:'That\'s not a bug — it\'s by design. It keeps HR, Finance, and Payroll in sync.'},
+  {icon:'🏢',
+   title:'Six concepts to master',
+   body:'The Main Concept tool walks you through <strong>six core Workday concepts</strong> using Vina Company\'s real data: Supervisory Org, Staffing Model, Job Profile, Compensation, Security, and Business Process.',
+   hl:'Click any worker or org to explore their full Workday data — and follow the cross-concept links to see how everything connects.'},
+  {icon:'📋',
+   title:'When you\'re ready — map your own data',
+   body:'The <strong>Data Mapping Tool</strong> is where your real implementation work begins. Enter your actual company data, validate it against Workday rules, and export to Excel for EIB upload.',
+   hl:'Follow the load order: Reference data first, workers last. The tool enforces the sequence.'},
+  {icon:'✅',
+   title:'You\'re ready to explore',
+   body:'Start with the <strong>Main Concept</strong> tool to build your understanding — then move to the Data Mapping Tool when you\'re ready to prepare your real data.',
+   hl:null},
+];
+
+let step = 0;
+
+function startStory() {
+  step = 0;
+  document.getElementById('story-overlay').classList.add('show');
+  render();
+}
+
+function render() {
+  const s = STORY[step];
+  const isLast = step === STORY.length - 1;
+  const dots = STORY.map((_,i) => `<div class="sc-dot ${i===step?'active':''}"></div>`).join('');
+  document.getElementById('story-card').innerHTML = `
+    <div class="sc-step">Step ${step+1} of ${STORY.length}</div>
+    <span class="sc-icon">${s.icon}</span>
+    <div class="sc-title">${s.title}</div>
+    <div class="sc-body">${s.body}</div>
+    ${s.hl ? `<div class="sc-hl">${s.hl}</div>` : ''}
+    <div class="sc-footer">
+      <div class="sc-dots">${dots}</div>
+      <div class="sc-actions">
+        ${step > 0 ? `<button class="btn btn-outline" onclick="nav(-1)">← Back</button>` : ''}
+        ${isLast
+          ? `<button class="btn btn-dark" onclick="closeStory()">Start exploring →</button>`
+          : `<button class="btn btn-dark" onclick="nav(1)">Next →</button>`}
+        ${!isLast ? `<button class="btn-dim" onclick="closeStory()">Skip</button>` : ''}
+      </div>
+    </div>`;
+}
+
+function nav(d) { step = Math.max(0, Math.min(STORY.length-1, step+d)); render(); }
+function closeStory() { document.getElementById('story-overlay').classList.remove('show'); }
+
+// Init nav + auto-start story
+renderNav('home');
+setTimeout(startStory, 500);
+</script>
+</body>
+</html>
