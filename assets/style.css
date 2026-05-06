@@ -1,0 +1,137 @@
+/* ═══════════════════════════════════════════
+   VINA COMPANY — WORKDAY HUB
+   Shared design tokens & nav styles
+   ═══════════════════════════════════════════ */
+
+:root {
+  --bg: #F7F5F0;
+  --surface: #FFFFFF;
+  --surface2: #F0EDE8;
+  --border: rgba(0,0,0,0.08);
+  --border2: rgba(0,0,0,0.14);
+  --text: #1A1814;
+  --text2: #6B6660;
+  --text3: #A8A4A0;
+  --font: 'Bricolage Grotesque', sans-serif;
+  --mono: 'DM Mono', monospace;
+
+  /* Brand */
+  --brand: #1D4ED8;
+  --brand-bg: #EFF6FF;
+
+  /* Concept colours */
+  --c-org: #1D4ED8;
+  --c-stf: #9D174D;
+  --c-jp:  #B45309;
+  --c-comp:#DC2626;
+  --c-sec: #065F46;
+  --c-bp:  #7C3AED;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+}
+
+/* ── GLOBAL NAV ── */
+.hub-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  height: 48px;
+  background: var(--text);
+  color: #fff;
+  position: sticky;
+  top: 0;
+  z-index: 300;
+  flex-shrink: 0;
+}
+
+.hub-nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: #fff;
+}
+
+.hub-nav-logo {
+  width: 28px;
+  height: 28px;
+  background: linear-gradient(135deg, #1D4ED8, #7C3AED);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.hub-nav-name {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.hub-nav-links {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.hub-nav-link {
+  padding: 5px 12px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.6);
+  text-decoration: none;
+  transition: all 0.15s;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  font-family: var(--font);
+  white-space: nowrap;
+}
+
+.hub-nav-link:hover {
+  color: #fff;
+  background: rgba(255,255,255,0.1);
+}
+
+.hub-nav-link.active {
+  color: #fff;
+  background: rgba(255,255,255,0.15);
+}
+
+/* ── SHARED BUTTON ── */
+.hub-btn {
+  padding: 6px 14px;
+  border-radius: 7px;
+  font-family: var(--font);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all 0.15s;
+}
+
+.hub-btn-ghost {
+  background: rgba(255,255,255,0.1);
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.2);
+}
+
+.hub-btn-ghost:hover {
+  background: rgba(255,255,255,0.18);
+}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
