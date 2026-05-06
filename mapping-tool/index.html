@@ -1,0 +1,1366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Workday HCM — Data Mapping Tool</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root {
+  --bg: #F4F3EF;
+  --surface: #FFFFFF;
+  --surface2: #EEECE7;
+  --surface3: #E5E3DC;
+  --border: #DEDAD0;
+  --border2: #C8C4B8;
+  --text: #18181A;
+  --text2: #5C5B60;
+  --text3: #9A9895;
+  --purple: #4F46A0;
+  --purple2: #6B62BE;
+  --purple-bg: #ECEAFF;
+  --purple-border: #B8B3F0;
+  --green: #1B7A5A;
+  --green-bg: #E4F5EE;
+  --green-border: #7ECAAA;
+  --amber: #9A5A08;
+  --amber-bg: #FEF3E0;
+  --amber-border: #E8B86A;
+  --coral: #B83020;
+  --coral-bg: #FDEEE9;
+  --coral-border: #F0A090;
+  --blue: #1A4FA0;
+  --blue-bg: #E6EEFF;
+  --blue-border: #90B0F0;
+  --gray-bg: #F0EEE8;
+  --font: 'IBM Plex Sans', sans-serif;
+  --mono: 'IBM Plex Mono', monospace;
+  --r: 6px;
+  --r2: 10px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;min-height:100vh;}
+
+/* TOPBAR */
+.topbar{background:var(--text);color:#fff;height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;position:sticky;top:0;z-index:200;}
+.tb-brand{display:flex;align-items:center;gap:10px;}
+.tb-logo{width:26px;height:26px;background:var(--purple2);border-radius:5px;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:12px;}
+.tb-title{font-size:14px;font-weight:500;letter-spacing:-.01em;}
+.tb-sub{font-size:12px;opacity:.4;margin-left:6px;}
+.tb-right{display:flex;align-items:center;gap:8px;}
+.btn{padding:6px 14px;border-radius:var(--r);font-family:var(--font);font-size:12px;font-weight:500;cursor:pointer;border:none;transition:all .15s;white-space:nowrap;}
+.btn-ghost{background:rgba(255,255,255,.1);color:#fff;}
+.btn-ghost:hover{background:rgba(255,255,255,.18);}
+.btn-outline{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.25);}
+.btn-outline:hover{background:rgba(255,255,255,.08);}
+.btn-green{background:var(--green);color:#fff;}
+.btn-green:hover{background:#166B4E;}
+.btn-purple{background:var(--purple);color:#fff;}
+.btn-purple:hover{background:#3F389A;}
+
+/* LAYOUT */
+.layout{display:flex;min-height:calc(100vh - 52px);}
+
+/* SIDEBAR */
+.sidebar{width:230px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);position:sticky;top:52px;height:calc(100vh - 52px);overflow-y:auto;padding:12px 0;}
+.sb-label{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);padding:10px 16px 4px;}
+.sb-item{display:flex;align-items:center;gap:9px;padding:8px 16px;cursor:pointer;color:var(--text2);font-size:13px;border-left:2px solid transparent;transition:all .1s;}
+.sb-item:hover{background:var(--bg);color:var(--text);}
+.sb-item.active{background:var(--purple-bg);color:var(--purple);border-left-color:var(--purple);font-weight:500;}
+.sb-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.sb-badge{margin-left:auto;font-size:10px;padding:1px 6px;border-radius:10px;background:var(--surface2);color:var(--text3);}
+.sb-item.active .sb-badge{background:var(--purple);color:#fff;}
+.sb-divider{height:1px;background:var(--border);margin:8px 0;}
+
+/* MAIN */
+.main{flex:1;overflow:auto;}
+.section{display:none;padding:28px 32px;}
+.section.active{display:block;}
+
+/* PAGE HEADER */
+.ph{margin-bottom:20px;}
+.ph h1{font-size:20px;font-weight:600;letter-spacing:-.02em;}
+.ph p{font-size:13px;color:var(--text2);margin-top:5px;max-width:640px;line-height:1.65;}
+
+/* EXPLAINER */
+.explainer{display:flex;gap:12px;background:var(--purple-bg);border:1px solid var(--purple-border);border-radius:var(--r2);padding:14px 16px;margin-bottom:20px;}
+.explainer-icon{font-size:18px;flex-shrink:0;margin-top:1px;}
+.explainer h3{font-size:12px;font-weight:600;color:var(--purple);margin-bottom:3px;text-transform:uppercase;letter-spacing:.04em;}
+.explainer p{font-size:13px;color:#3A3580;line-height:1.6;}
+
+/* LOAD ORDER CHIPS */
+.order-row{display:flex;align-items:center;gap:0;margin-bottom:24px;flex-wrap:wrap;gap:0;}
+.order-chip{display:flex;align-items:center;gap:6px;padding:6px 12px;background:var(--surface);border:1px solid var(--border);font-size:12px;font-weight:500;}
+.order-chip:first-child{border-radius:var(--r) 0 0 var(--r);}
+.order-chip:last-child{border-radius:0 var(--r) var(--r) 0;}
+.order-chip.active-chip{background:var(--purple-bg);border-color:var(--purple-border);color:var(--purple);}
+.order-chip .num{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;background:var(--purple);color:#fff;flex-shrink:0;}
+.order-chip.active-chip .num{background:var(--purple);}
+.order-arr{font-size:12px;color:var(--text3);margin:0 -1px;z-index:1;}
+
+/* NOTE */
+.note{display:flex;gap:10px;background:var(--amber-bg);border:1px solid var(--amber-border);border-radius:var(--r);padding:11px 14px;margin-bottom:16px;font-size:12px;color:var(--amber);}
+
+/* ── COLUMN-LAYOUT DATA GRID ── */
+.datagrid-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden;}
+.datagrid-toolbar{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--surface2);border-bottom:1px solid var(--border);}
+.dg-left{display:flex;align-items:center;gap:10px;}
+.dg-name{font-size:13px;font-weight:600;}
+.dg-count{font-size:11px;color:var(--text3);}
+.dg-actions{display:flex;gap:6px;}
+.btn-sm{padding:5px 11px;border-radius:var(--r);font-size:12px;font-weight:500;cursor:pointer;font-family:var(--font);border:1px solid var(--border2);background:var(--surface);color:var(--text2);transition:all .12s;}
+.btn-sm:hover{background:var(--bg);color:var(--text);}
+.btn-sm.g{background:var(--green-bg);color:var(--green);border-color:var(--green-border);}
+.btn-sm.g:hover{background:var(--green);color:#fff;}
+
+/* The actual column grid */
+.datagrid-scroll{overflow-x:auto;}
+.datagrid{display:flex;min-width:100%;}
+
+/* Each field = one column */
+.dg-col{flex:0 0 180px;border-right:1px solid var(--border);display:flex;flex-direction:column;}
+.dg-col:last-child{border-right:none;}
+.dg-col.wide{flex:0 0 220px;}
+.dg-col.narrow{flex:0 0 140px;}
+
+/* Column header */
+.dg-col-head{padding:10px 10px 8px;background:var(--surface2);border-bottom:1px solid var(--border);min-height:90px;display:flex;flex-direction:column;gap:4px;position:relative;}
+.dg-field-name{font-family:var(--mono);font-size:11px;font-weight:500;color:var(--purple);line-height:1.3;word-break:break-word;}
+.dg-label{font-size:12px;font-weight:500;color:var(--text);margin-top:1px;}
+.dg-badges{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px;}
+.badge{display:inline-block;padding:1px 7px;border-radius:20px;font-size:10px;font-weight:600;white-space:nowrap;}
+.b-req{background:var(--coral-bg);color:var(--coral);}
+.b-opt{background:var(--surface2);color:var(--text3);}
+.b-cond{background:var(--amber-bg);color:var(--amber);}
+.b-text{background:var(--blue-bg);color:var(--blue);}
+.b-date{background:var(--green-bg);color:var(--green);}
+.b-bool{background:var(--amber-bg);color:var(--amber);}
+.b-ref{background:var(--purple-bg);color:var(--purple);}
+.b-num{background:var(--gray-bg);color:var(--text2);}
+
+/* ⓘ tooltip trigger */
+.info-btn{position:absolute;top:8px;right:8px;width:18px;height:18px;border-radius:50%;background:var(--border2);color:var(--text2);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:pointer;border:none;font-family:var(--font);transition:all .12s;flex-shrink:0;}
+.info-btn:hover{background:var(--purple);color:#fff;}
+
+/* Tooltip popup */
+.tooltip{position:fixed;z-index:9999;background:var(--text);color:#fff;border-radius:var(--r2);padding:14px 16px;width:300px;pointer-events:none;opacity:0;transition:opacity .15s;box-shadow:0 8px 24px rgba(0,0,0,.22);}
+.tooltip.show{opacity:1;}
+.tt-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;opacity:.5;margin-bottom:6px;}
+.tt-desc{font-size:12px;line-height:1.6;opacity:.9;margin-bottom:10px;}
+.tt-section{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;opacity:.5;margin-bottom:4px;margin-top:8px;}
+.tt-rel{font-size:12px;line-height:1.5;opacity:.85;}
+.tt-rel span{display:block;padding:3px 0;border-bottom:1px solid rgba(255,255,255,.1);}
+.tt-rel span:last-child{border-bottom:none;}
+.tt-val{font-size:11px;line-height:1.5;opacity:.8;}
+.tt-val b{color:#FFD580;font-weight:500;}
+.tt-example{font-family:var(--mono);font-size:11px;background:rgba(255,255,255,.1);padding:4px 8px;border-radius:4px;margin-top:6px;opacity:.9;}
+
+/* Data input cells */
+.dg-cell{padding:6px 8px;border-bottom:1px solid var(--border);min-height:44px;display:flex;align-items:center;}
+.dg-cell:last-child{border-bottom:none;}
+.dg-input{width:100%;border:1px solid var(--border);border-radius:4px;padding:5px 8px;font-size:12px;font-family:var(--mono);color:var(--text);background:#fff;transition:all .1s;min-height:32px;}
+.dg-input:focus{outline:none;border-color:var(--purple2);box-shadow:0 0 0 2px var(--purple-bg);}
+.dg-input.filled{background:#F5FFF8;border-color:var(--green-border);color:var(--green);}
+.dg-input.err{background:var(--coral-bg);border-color:var(--coral-border);}
+
+/* Row header column */
+.dg-col-rowhead{flex:0 0 44px;border-right:1px solid var(--border);}
+.dg-col-rowhead .dg-col-head{align-items:center;justify-content:center;background:var(--surface2);}
+.row-num{width:26px;height:26px;border-radius:50%;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:var(--text3);}
+.dg-cell-rowhead{display:flex;align-items:center;justify-content:center;padding:6px 4px;border-bottom:1px solid var(--border);}
+.dg-cell-rowhead:last-child{border-bottom:none;}
+
+/* Delete col */
+.dg-col-del{flex:0 0 36px;border-left:1px solid var(--border);}
+.dg-col-del .dg-col-head{background:var(--surface2);}
+.del-btn{width:24px;height:24px;border-radius:4px;border:1px solid var(--border2);background:var(--surface);color:var(--text3);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all .1s;}
+.del-btn:hover{background:var(--coral-bg);color:var(--coral);border-color:var(--coral-border);}
+
+/* Validation error line */
+.val-err{font-size:10px;color:var(--coral);margin-top:2px;line-height:1.3;display:none;}
+.val-err.show{display:block;}
+
+/* EMPTY STATE */
+.empty-state{padding:32px;text-align:center;color:var(--text3);font-size:13px;}
+.empty-state p{margin-top:6px;font-size:12px;}
+
+/* GUIDE CARDS */
+.guide-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:24px;}
+.g-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);padding:16px;}
+.g-card h3{font-size:13px;font-weight:600;margin-bottom:8px;}
+.g-card ul{padding-left:16px;font-size:13px;color:var(--text2);line-height:1.9;}
+.g-card p{font-size:13px;color:var(--text2);line-height:1.65;}
+
+/* LOAD ORDER TABLE */
+.lo-table{width:100%;border-collapse:collapse;font-size:13px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden;}
+.lo-table th{padding:9px 14px;text-align:left;font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);background:var(--surface2);border-bottom:1px solid var(--border);}
+.lo-table td{padding:10px 14px;border-bottom:1px solid var(--border);vertical-align:top;}
+.lo-table tr:last-child td{border-bottom:none;}
+.lo-table tr:hover td{background:var(--bg);}
+.lo-num{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;}
+.eib-code{font-family:var(--mono);font-size:11px;color:var(--purple);background:var(--purple-bg);padding:2px 7px;border-radius:3px;}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--text);color:#fff;padding:11px 18px;border-radius:var(--r2);font-size:13px;font-weight:500;opacity:0;transform:translateY(6px);transition:all .2s;z-index:999;pointer-events:none;box-shadow:0 4px 16px rgba(0,0,0,.2);}
+.toast.show{opacity:1;transform:translateY(0);}
+
+/* EXPORT MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:500;display:none;align-items:center;justify-content:center;}
+.modal-bg.show{display:flex;}
+.modal{background:var(--surface);border-radius:var(--r2);padding:28px;width:420px;box-shadow:0 16px 48px rgba(0,0,0,.2);}
+.modal h2{font-size:16px;font-weight:600;margin-bottom:6px;}
+.modal p{font-size:13px;color:var(--text2);margin-bottom:20px;line-height:1.6;}
+.modal-opts{display:flex;flex-direction:column;gap:10px;margin-bottom:20px;}
+.modal-opt{display:flex;gap:14px;padding:14px;border:1.5px solid var(--border);border-radius:var(--r2);cursor:pointer;transition:all .12s;}
+.modal-opt:hover{border-color:var(--purple-border);background:var(--purple-bg);}
+.modal-opt.selected{border-color:var(--purple);background:var(--purple-bg);}
+.opt-icon{font-size:22px;flex-shrink:0;}
+.opt-body h3{font-size:13px;font-weight:600;margin-bottom:2px;}
+.opt-body p{font-size:12px;color:var(--text2);margin:0;line-height:1.5;}
+.modal-footer{display:flex;gap:8px;justify-content:flex-end;}
+.btn-cancel{padding:8px 16px;border-radius:var(--r);font-family:var(--font);font-size:13px;cursor:pointer;border:1px solid var(--border2);background:var(--surface);color:var(--text2);}
+.btn-do{padding:8px 18px;border-radius:var(--r);font-family:var(--font);font-size:13px;font-weight:500;cursor:pointer;border:none;background:var(--purple);color:#fff;}
+.btn-do:hover{background:#3F389A;}
+
+/* scrollbar */
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
+</style>
+</head>
+<body>
+
+<!-- Shared nav -->
+<script src="../assets/nav.js"></script>
+<script>document.addEventListener('DOMContentLoaded',()=>renderNav('mapping'));</script>
+
+<div class="topbar">
+  <div class="tb-brand">
+    <div class="tb-logo">W</div>
+    <span class="tb-title">Workday HCM</span>
+    <span class="tb-sub">Data Mapping Tool</span>
+  </div>
+  <div class="tb-right">
+    <button class="btn btn-ghost" onclick="clearAll()">Clear all data</button>
+    <button class="btn btn-outline" onclick="openExportModal()">⬇ Export Excel</button>
+  </div>
+</div>
+
+<div class="layout">
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="sb-label">Guide</div>
+  <div class="sb-item active" onclick="nav('guide')" id="tab-guide">
+    <div class="sb-dot" style="background:#4F46A0"></div>How to use
+  </div>
+  <div class="sb-divider"></div>
+  <div class="sb-label">① Reference data</div>
+  <div class="sb-item" onclick="nav('location')" id="tab-location">
+    <div class="sb-dot" style="background:#1A4FA0"></div>Locations
+    <span class="sb-badge" id="badge-location">0</span>
+  </div>
+  <div class="sb-item" onclick="nav('jfg')" id="tab-jfg">
+    <div class="sb-dot" style="background:#9A5A08"></div>Job Family Groups
+    <span class="sb-badge" id="badge-jfg">0</span>
+  </div>
+  <div class="sb-item" onclick="nav('jf')" id="tab-jf">
+    <div class="sb-dot" style="background:#9A5A08"></div>Job Families
+    <span class="sb-badge" id="badge-jf">0</span>
+  </div>
+  <div class="sb-item" onclick="nav('jp')" id="tab-jp">
+    <div class="sb-dot" style="background:#9A5A08"></div>Job Profiles
+    <span class="sb-badge" id="badge-jp">0</span>
+  </div>
+  <div class="sb-item" onclick="nav('compgrade')" id="tab-compgrade">
+    <div class="sb-dot" style="background:#B83020"></div>Comp Grades
+    <span class="sb-badge" id="badge-compgrade">0</span>
+  </div>
+  <div class="sb-divider"></div>
+  <div class="sb-label">② Organisation</div>
+  <div class="sb-item" onclick="nav('cc')" id="tab-cc">
+    <div class="sb-dot" style="background:#1A4FA0"></div>Cost Centers
+    <span class="sb-badge" id="badge-cc">0</span>
+  </div>
+  <div class="sb-item" onclick="nav('suporg')" id="tab-suporg">
+    <div class="sb-dot" style="background:#1A4FA0"></div>Supervisory Orgs
+    <span class="sb-badge" id="badge-suporg">0</span>
+  </div>
+  <div class="sb-item" onclick="nav('position')" id="tab-position">
+    <div class="sb-dot" style="background:#1B7A5A"></div>Positions
+    <span class="sb-badge" id="badge-position">0</span>
+  </div>
+  <div class="sb-divider"></div>
+  <div class="sb-label">③ Workers</div>
+  <div class="sb-item" onclick="nav('worker')" id="tab-worker">
+    <div class="sb-dot" style="background:#4F46A0"></div>Worker / Personal Info
+    <span class="sb-badge" id="badge-worker">0</span>
+  </div>
+  <div class="sb-item" onclick="nav('employment')" id="tab-employment">
+    <div class="sb-dot" style="background:#4F46A0"></div>Employment Details
+    <span class="sb-badge" id="badge-employment">0</span>
+  </div>
+  <div class="sb-item" onclick="nav('comp')" id="tab-comp">
+    <div class="sb-dot" style="background:#B83020"></div>Compensation
+    <span class="sb-badge" id="badge-comp">0</span>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+<!-- ══ GUIDE ══ -->
+<div class="section active" id="section-guide">
+  <div class="ph"><h1>Welcome — How to use this tool</h1><p>This tool helps you prepare HR data for Workday migration. Work through each section in order. Hover the <span style="font-weight:600;color:var(--purple)">ⓘ</span> icon on any column to see what the field means, where the data comes from, and validation rules.</p></div>
+  <div class="guide-grid">
+    <div class="g-card"><h3>📋 Step-by-step</h3><ul><li>Follow sections in sidebar order (top → bottom)</li><li>Click <b>+ Add row</b> to enter each record</li><li>Hover <b>ⓘ</b> on a column for full field guidance</li><li>Export when ready — template or with data</li></ul></div>
+    <div class="g-card"><h3>⚠️ Critical rules</h3><ul><li>Reference data loads <b>before</b> workers</li><li>Dates → <b>YYYY-MM-DD</b> format only</li><li>Yes/No fields → exactly <b>Yes</b> or <b>No</b></li><li>IDs must be <b>unique</b> with no spaces</li></ul></div>
+    <div class="g-card"><h3>🔗 How data links together</h3><p>Each section references IDs from earlier sections. A Position needs an Organization_ID from Supervisory Orgs and a Job_Profile_ID from Job Profiles. Validation in the tool will flag mismatches. The ⓘ tooltip on each reference field shows exactly which earlier sheet it must match.</p></div>
+    <div class="g-card"><h3>📤 Two export modes</h3><p><b>Export template:</b> blank Excel with all sheets and column headers — share with clients to fill in offline.<br/><br/><b>Export with data:</b> exports everything entered so far — ready to hand to your consultant for EIB upload.</p></div>
+  </div>
+  <h2 style="font-size:15px;font-weight:600;margin-bottom:14px;">EIB load order — follow this sequence</h2>
+  <table class="lo-table">
+    <thead><tr><th>#</th><th>Object</th><th>EIB Template</th><th>Must have loaded first</th><th>Why</th></tr></thead>
+    <tbody>
+      <tr><td><div class="lo-num" style="background:var(--blue-bg);color:var(--blue);">1</div></td><td><b>Locations</b></td><td><span class="eib-code">Create/Edit Location</span></td><td>—</td><td>Referenced by Positions, Workers, Supervisory Orgs</td></tr>
+      <tr><td><div class="lo-num" style="background:var(--amber-bg);color:var(--amber);">2</div></td><td><b>Job Family Groups</b></td><td><span class="eib-code">Create Job Family Group</span></td><td>—</td><td>Top of the job classification hierarchy</td></tr>
+      <tr><td><div class="lo-num" style="background:var(--amber-bg);color:var(--amber);">3</div></td><td><b>Job Families</b></td><td><span class="eib-code">Create Job Family</span></td><td>Job Family Groups</td><td>Each Family must reference a Group</td></tr>
+      <tr><td><div class="lo-num" style="background:var(--amber-bg);color:var(--amber);">4</div></td><td><b>Job Profiles</b></td><td><span class="eib-code">Create Job Profile</span></td><td>Job Families</td><td>Each Profile references a Family; Positions reference Profiles</td></tr>
+      <tr><td><div class="lo-num" style="background:var(--coral-bg);color:var(--coral);">5</div></td><td><b>Comp Grades</b></td><td><span class="eib-code">Load Compensation Grade</span></td><td>—</td><td>Referenced by Job Profiles and worker compensation</td></tr>
+      <tr><td><div class="lo-num" style="background:var(--blue-bg);color:var(--blue);">6</div></td><td><b>Cost Centers</b></td><td><span class="eib-code">Load Cost Centers</span></td><td>—</td><td>Referenced by Supervisory Orgs for financial mapping</td></tr>
+      <tr><td><div class="lo-num" style="background:var(--blue-bg);color:var(--blue);">7</div></td><td><b>Supervisory Orgs</b></td><td><span class="eib-code">Create Supervisory Org</span></td><td>Locations, Cost Centers</td><td>Containers for Positions; define reporting hierarchy</td></tr>
+      <tr><td><div class="lo-num" style="background:var(--green-bg);color:var(--green);">8</div></td><td><b>Positions</b></td><td><span class="eib-code">Create Position</span></td><td>Supervisory Orgs, Job Profiles, Locations</td><td>The headcount slot workers are hired into</td></tr>
+      <tr><td><div class="lo-num" style="background:var(--purple-bg);color:var(--purple);">9</div></td><td><b>Workers</b></td><td><span class="eib-code">Hire Employee</span></td><td>Positions</td><td>The person; fills a Position</td></tr>
+      <tr><td><div class="lo-num" style="background:var(--purple-bg);color:var(--purple);">10</div></td><td><b>Employment Details</b></td><td><span class="eib-code">Edit Employment Details</span></td><td>Workers</td><td>The working arrangement details for each Worker</td></tr>
+      <tr><td><div class="lo-num" style="background:var(--coral-bg);color:var(--coral);">11</div></td><td><b>Compensation</b></td><td><span class="eib-code">Request Comp Change</span></td><td>Workers, Comp Grades</td><td>Actual pay loaded after worker is hired</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- Sections injected by JS -->
+<div class="section" id="section-location"></div>
+<div class="section" id="section-jfg"></div>
+<div class="section" id="section-jf"></div>
+<div class="section" id="section-jp"></div>
+<div class="section" id="section-compgrade"></div>
+<div class="section" id="section-cc"></div>
+<div class="section" id="section-suporg"></div>
+<div class="section" id="section-position"></div>
+<div class="section" id="section-worker"></div>
+<div class="section" id="section-employment"></div>
+<div class="section" id="section-comp"></div>
+
+</div><!-- /main -->
+</div><!-- /layout -->
+
+<!-- Tooltip -->
+<div class="tooltip" id="tooltip"></div>
+
+<!-- Export Modal -->
+<div class="modal-bg" id="modal-bg">
+  <div class="modal">
+    <h2>Export to Excel</h2>
+    <p>Choose what to export. Both options produce one Excel file with a sheet per data object in the correct EIB load order.</p>
+    <div class="modal-opts">
+      <div class="modal-opt selected" id="opt-template" onclick="selectOpt('template')">
+        <div class="opt-icon">📋</div>
+        <div class="opt-body">
+          <h3>Export blank template</h3>
+          <p>Empty sheets with all column headers and field names. Share with clients to fill in offline, then re-import here.</p>
+        </div>
+      </div>
+      <div class="modal-opt" id="opt-data" onclick="selectOpt('data')">
+        <div class="opt-icon">📊</div>
+        <div class="opt-body">
+          <h3>Export with entered data</h3>
+          <p>Exports everything entered in this session. Sheets with no data get headers only. Ready for EIB review.</p>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-do" onclick="doExport()">Download Excel ↓</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ════════════════════════════════════════
+// SCHEMA — all sections with full tooltip data
+// ════════════════════════════════════════
+var SCHEMA = {
+
+  location: {
+    title: 'Locations',
+    color: '#1A4FA0',
+    explainer: 'A Location is any physical or virtual place where work happens — an office, a warehouse, a remote-work policy. Every Worker and Position links to a Location, so this must be set up first.',
+    analogy: 'Even "Remote — Vietnam" is a Location record. It must exist in Workday before anyone can be assigned to it.',
+    eib: 'Create/Edit Location',
+    fields: [
+      { id:'Location_ID', label:'Location code', type:'text', req:'Required', width:'narrow',
+        desc:'A short unique code for this location with no spaces. This is the ID that all other objects reference when they need to point to this location.',
+        example:'LOC-HCM-01',
+        relations:[],
+        validation:['Must be unique — no two locations can share the same ID','No spaces or special characters','Recommended format: LOC-[CITY]-[NUMBER]'] },
+      { id:'Location_Name', label:'Full location name', type:'text', req:'Required', width:'wide',
+        desc:'The full display name of this location as it will appear in Workday drop-downs and org charts.',
+        example:'Ho Chi Minh City HQ',
+        relations:[],
+        validation:['Must be meaningful and recognisable to employees','Should distinguish between multiple offices in the same city'] },
+      { id:'Location_Type', label:'Type of site', type:'ref', req:'Required', width:'normal',
+        desc:'The category of this location. Controls which options appear on worker profiles.',
+        example:'Business Site',
+        relations:[],
+        validation:['Allowed values: Business Site, Home Office, Remote','Must match exactly — case sensitive in Workday'] },
+      { id:'Address_Line_1', label:'Street address', type:'text', req:'Required', width:'wide',
+        desc:'First line of the physical address. For remote locations, use a registered business address.',
+        example:'12 Nguyen Hue Street, District 1',
+        relations:[],
+        validation:['Required for all location types including Remote','Used for tax jurisdiction assignment in some countries'] },
+      { id:'City', label:'City', type:'text', req:'Required', width:'normal',
+        desc:'City name exactly as used in Workday\'s address system for this country.',
+        example:'Ho Chi Minh City',
+        relations:[],
+        validation:[] },
+      { id:'Country', label:'Country', type:'ref', req:'Required', width:'normal',
+        desc:'Country name exactly as configured in the Workday tenant. Controls address format, time zone options, and payroll rules.',
+        example:'Vietnam',
+        relations:[],
+        validation:['Must match Workday\'s country reference list exactly','Use full country name, not ISO code (e.g. "Vietnam" not "VN")'] },
+      { id:'Time_Zone', label:'Time zone', type:'ref', req:'Required', width:'normal',
+        desc:'Workday time zone identifier. Controls scheduling, time tracking, and notification delivery.',
+        example:'Asia/Ho_Chi_Minh',
+        relations:[],
+        validation:['Must use IANA tz format: Asia/Ho_Chi_Minh, Asia/Bangkok, America/New_York','Ask your Workday consultant for the exact tenant-configured list'] },
+      { id:'Effective_Date', label:'Active from date', type:'date', req:'Required', width:'narrow',
+        desc:'The date this location record becomes active. Use the company founding date or the earliest hire date if unsure.',
+        example:'2020-01-01',
+        relations:[],
+        validation:['Format: YYYY-MM-DD strictly','Cannot be in the future for go-live migrations'] }
+    ]
+  },
+
+  jfg: {
+    title: 'Job Family Groups',
+    color: '#9A5A08',
+    explainer: 'Job Family Group is the top level of Workday\'s job classification hierarchy — a broad category like "Technology", "Finance", or "Operations". Job Families sit inside Groups, and Job Profiles sit inside Families.',
+    analogy: 'Think of it as the department category. Most companies have 5–10 groups. Keep this list short and meaningful.',
+    eib: 'Create Job Family Group',
+    fields: [
+      { id:'Job_Family_Group_ID', label:'Group code', type:'text', req:'Required', width:'narrow',
+        desc:'Unique code for this group. Referenced by Job Families in the next step.',
+        example:'JFG-TECH',
+        relations:['→ Job Families use this ID as their parent reference (Job_Family_Group_ID)'],
+        validation:['Must be unique','No spaces — use hyphens','Recommended format: JFG-[SHORTNAME]'] },
+      { id:'Job_Family_Group_Name', label:'Group name', type:'text', req:'Required', width:'wide',
+        desc:'The full display name. Employees and managers will see this in Workday when browsing job structures.',
+        example:'Technology',
+        relations:[],
+        validation:['Keep concise — 1 to 3 words','Should represent a meaningful business grouping'] },
+      { id:'Inactive', label:'Is this inactive?', type:'bool', req:'Optional', width:'narrow',
+        desc:'Only set to "Yes" if this group is being retired. Leave blank or "No" for all active groups.',
+        example:'No',
+        relations:[],
+        validation:['Allowed values: Yes, No, or blank (treated as No)'] }
+    ]
+  },
+
+  jf: {
+    title: 'Job Families',
+    color: '#9A5A08',
+    explainer: 'A Job Family groups similar Job Profiles together within a Job Family Group. For example, "Software Engineering" is a Job Family inside the "Technology" group. You must reference a Job Family Group ID from the previous step.',
+    analogy: 'If Job Family Group = "Technology", Job Families inside it might be: Software Engineering, Data & Analytics, IT Support.',
+    eib: 'Create Job Family',
+    fields: [
+      { id:'Job_Family_ID', label:'Family code', type:'text', req:'Required', width:'narrow',
+        desc:'Unique code for this job family. Referenced by Job Profiles in the next step.',
+        example:'JF-SOFTENG',
+        relations:['→ Job Profiles use this ID as their parent reference (Job_Family_ID)'],
+        validation:['Must be unique','No spaces — use hyphens','Recommended format: JF-[SHORTNAME]'] },
+      { id:'Job_Family_Name', label:'Family name', type:'text', req:'Required', width:'wide',
+        desc:'The full display name of this job family.',
+        example:'Software Engineering',
+        relations:[],
+        validation:['Should be more specific than the Group but still cover multiple job levels'] },
+      { id:'Job_Family_Group_ID', label:'Parent group code', type:'ref', req:'Required', width:'normal',
+        desc:'Which Job Family Group this family belongs to. Must exactly match a Job_Family_Group_ID you entered in the Job Family Groups sheet.',
+        example:'JFG-TECH',
+        relations:['← Must match Job_Family_Group_ID in the Job Family Groups sheet'],
+        validation:['Must exactly match an existing Job_Family_Group_ID','If this ID doesn\'t exist in Job Family Groups, the EIB will reject this row','Cross-check spelling and casing carefully'] },
+      { id:'Inactive', label:'Is this inactive?', type:'bool', req:'Optional', width:'narrow',
+        desc:'Enter "Yes" only if this family is being retired.',
+        example:'No',
+        relations:[],
+        validation:['Allowed values: Yes, No, or blank'] }
+    ]
+  },
+
+  jp: {
+    title: 'Job Profiles',
+    color: '#9A5A08',
+    explainer: 'A Job Profile defines a specific role — its title, level, and classification. Many Positions can share the same Job Profile (e.g. all "Senior Software Engineers" share one profile). Positions reference Job Profiles to inherit role characteristics.',
+    analogy: 'If 12 people are all called "Senior Software Engineer", there is ONE Job Profile — and 12 Positions reference it. The profile stores classification; the Position stores headcount.',
+    eib: 'Create Job Profile',
+    fields: [
+      { id:'Job_Profile_ID', label:'Profile code', type:'text', req:'Required', width:'narrow',
+        desc:'Unique code for this profile. Positions will reference this ID.',
+        example:'JP-SWE-SR',
+        relations:['→ Positions use this ID as their role definition (Job_Profile_ID)','→ Comp Grades can be linked to this profile'],
+        validation:['Must be unique','No spaces','Recommended format: JP-[ROLE]-[LEVEL]'] },
+      { id:'Job_Profile_Name', label:'Job title', type:'text', req:'Required', width:'wide',
+        desc:'The official job title. This appears on offer letters, Workday profiles, and org charts.',
+        example:'Senior Software Engineer',
+        relations:[],
+        validation:['Should match titles used in your existing HR system','Avoid abbreviations that employees won\'t recognise'] },
+      { id:'Job_Family_ID', label:'Parent family code', type:'ref', req:'Required', width:'normal',
+        desc:'Which Job Family this profile belongs to. Must exactly match a Job_Family_ID from the Job Families sheet.',
+        example:'JF-SOFTENG',
+        relations:['← Must match Job_Family_ID in the Job Families sheet'],
+        validation:['Must exactly match an existing Job_Family_ID','Missing or mismatched ID will cause EIB rejection'] },
+      { id:'Management_Level', label:'Management level', type:'ref', req:'Required', width:'normal',
+        desc:'The seniority classification in Workday. Controls reporting options and compensation planning visibility.',
+        example:'Individual Contributor',
+        relations:[],
+        validation:['Allowed values: Individual Contributor, Manager, Senior Manager, Director, Vice President, Executive','Must match exactly — these are tenant reference values'] },
+      { id:'Job_Level', label:'Internal grade / band', type:'text', req:'Optional', width:'narrow',
+        desc:'Your company\'s internal levelling code (e.g. L3, L4, Band C). Used for reporting and career pathing — not a Workday-defined field.',
+        example:'L4',
+        relations:[],
+        validation:['Free text — use your company\'s existing level codes'] },
+      { id:'Exempt_Non_Exempt', label:'Overtime classification', type:'ref', req:'Conditional', width:'normal',
+        desc:'US FLSA classification. Required for any US-based employees. Exempt = salaried, no overtime. Non-Exempt = hourly, overtime eligible.',
+        example:'Exempt',
+        relations:[],
+        validation:['Required for US employees','Allowed values: Exempt, Non-Exempt','Leave blank for non-US employees if not configured in tenant'] },
+      { id:'Compensation_Grade_ID', label:'Salary band code', type:'ref', req:'Optional', width:'normal',
+        desc:'Links this job profile to a salary band. Workers hired into positions using this profile will default to this grade.',
+        example:'CG-TECH-SR',
+        relations:['← Must match Compensation_Grade_ID in the Comp Grades sheet'],
+        validation:['Must exactly match an existing Compensation_Grade_ID if provided','Leave blank if comp grades are assigned at position level instead'] },
+      { id:'Inactive', label:'Is this inactive?', type:'bool', req:'Optional', width:'narrow',
+        desc:'Enter "Yes" only if this role no longer exists in your organisation.',
+        example:'No',
+        relations:[],
+        validation:['Allowed values: Yes, No, or blank'] }
+    ]
+  },
+
+  compgrade: {
+    title: 'Compensation Grades',
+    color: '#B83020',
+    explainer: 'A Compensation Grade defines the salary band for a group of roles — the minimum, midpoint, and maximum pay range. Job Profiles reference grades to suggest appropriate pay. Individual worker salaries are loaded separately against these grades.',
+    analogy: 'If your Senior Engineer roles sit in a band of $80k–$120k, that band is a Comp Grade. The grade defines the range; the worker\'s actual salary is a separate record within that range.',
+    eib: 'Load Compensation Grade',
+    fields: [
+      { id:'Compensation_Grade_ID', label:'Grade code', type:'text', req:'Required', width:'narrow',
+        desc:'Unique code for this grade. Referenced by Job Profiles and individual compensation records.',
+        example:'CG-TECH-SR',
+        relations:['→ Job Profiles reference this as their default pay band (Compensation_Grade_ID)','→ Worker Compensation records reference this grade'],
+        validation:['Must be unique','No spaces','Recommended format: CG-[FUNCTION]-[LEVEL]'] },
+      { id:'Compensation_Grade_Name', label:'Grade name', type:'text', req:'Required', width:'wide',
+        desc:'Descriptive name for this pay band. Makes it easy for HR and managers to identify.',
+        example:'Technology — Senior',
+        relations:[],
+        validation:[] },
+      { id:'Currency', label:'Pay currency', type:'ref', req:'Required', width:'narrow',
+        desc:'ISO 3-letter currency code. All min/mid/max values in this grade are in this currency.',
+        example:'USD',
+        relations:[],
+        validation:['Must be a valid ISO 4217 code: VND, USD, SGD, GBP, EUR etc.','Must match the currency configured in your Workday tenant'] },
+      { id:'Minimum_Salary', label:'Band minimum', type:'num', req:'Optional', width:'narrow',
+        desc:'The floor of this pay band. Numbers only — no currency symbols or commas.',
+        example:'80000',
+        relations:[],
+        validation:['Numbers only — no "$", ",", or spaces','Must be less than Midpoint and Maximum'] },
+      { id:'Midpoint_Salary', label:'Band midpoint', type:'num', req:'Optional', width:'narrow',
+        desc:'The market midpoint / reference point of this pay band.',
+        example:'100000',
+        relations:[],
+        validation:['Must be between Minimum and Maximum','Typically the 50th percentile market rate for this role'] },
+      { id:'Maximum_Salary', label:'Band maximum', type:'num', req:'Optional', width:'narrow',
+        desc:'The ceiling of this pay band. Workers paid above this are flagged as "red-circled" in Workday.',
+        example:'120000',
+        relations:[],
+        validation:['Must be greater than Midpoint and Minimum'] },
+      { id:'Effective_Date', label:'Active from date', type:'date', req:'Required', width:'narrow',
+        desc:'When this grade becomes effective. For historical migration, use the earliest date this band was in use.',
+        example:'2020-01-01',
+        relations:[],
+        validation:['Format: YYYY-MM-DD','Must be on or before the hire dates of workers assigned to this grade'] }
+    ]
+  },
+
+  cc: {
+    title: 'Cost Centers',
+    color: '#1A4FA0',
+    explainer: 'A Cost Center is the financial organisation unit — it tells Workday where to charge the cost of each employee. Cost Centers connect the HR world to the Finance world. Each Supervisory Org maps to one Cost Center.',
+    analogy: 'Your Finance team already uses Cost Center codes in their accounting system (e.g. CC-1001 Technology). These same codes need to exist in Workday so payroll knows which budget to charge.',
+    eib: 'Load Cost Centers (Financials EIB)',
+    fields: [
+      { id:'Cost_Center_ID', label:'Cost center code', type:'text', req:'Required', width:'narrow',
+        desc:'Unique code for this cost center. Should ideally match your existing finance system codes for easy reconciliation.',
+        example:'CC-TECH-01',
+        relations:['→ Supervisory Orgs reference this as their financial mapping (Cost_Center_ID)'],
+        validation:['Must be unique','Match your finance system codes where possible to simplify reconciliation'] },
+      { id:'Cost_Center_Name', label:'Cost center name', type:'text', req:'Required', width:'wide',
+        desc:'Full name of this cost center as it should appear in Workday financial reports.',
+        example:'Technology',
+        relations:[],
+        validation:[] },
+      { id:'Hierarchical_Parent_ID', label:'Parent cost center', type:'ref', req:'Optional', width:'normal',
+        desc:'If this cost center rolls up to a parent (e.g. "Technology" rolls up to "Operations"), enter the parent\'s Cost_Center_ID here.',
+        example:'CC-CORP',
+        relations:['← Must match another Cost_Center_ID in this same sheet'],
+        validation:['Must match an existing Cost_Center_ID in this sheet','Leave blank for top-level (no parent) cost centers','Circular references (A is parent of B, B is parent of A) will cause errors'] },
+      { id:'Effective_Date', label:'Active from date', type:'date', req:'Required', width:'narrow',
+        desc:'When this cost center becomes active.',
+        example:'2020-01-01',
+        relations:[],
+        validation:['Format: YYYY-MM-DD'] },
+      { id:'Currency', label:'Reporting currency', type:'ref', req:'Optional', width:'narrow',
+        desc:'The primary currency for budget reporting on this cost center.',
+        example:'USD',
+        relations:[],
+        validation:['ISO 4217 code','Should match the operating currency of the country/region this CC covers'] }
+    ]
+  },
+
+  suporg: {
+    title: 'Supervisory Organisations',
+    color: '#1A4FA0',
+    explainer: 'A Supervisory Org is the reporting unit in Workday — it represents a team or department as seen on the org chart. Every Supervisory Org has a manager, and contains Positions (not people directly). These form the reporting hierarchy.',
+    analogy: 'The "Frontend Engineering" team is one Supervisory Org. Its manager owns it. The positions (chairs) inside it belong to it. Workers report to a manager through this structure — not directly to a department name.',
+    eib: 'Create Supervisory Organization',
+    fields: [
+      { id:'Organization_ID', label:'Org code', type:'text', req:'Required', width:'narrow',
+        desc:'Unique code for this supervisory org. Workers, Positions, and child orgs all reference this.',
+        example:'ORG-TECH-FE',
+        relations:['→ Positions reference this as their team (Organization_ID)','→ Child orgs reference this as their parent (Superior_Organization_ID)'],
+        validation:['Must be unique','No spaces','Recommended format: ORG-[DEPT]-[TEAM]'] },
+      { id:'Organization_Name', label:'Team name', type:'text', req:'Required', width:'wide',
+        desc:'The team or department name as it will appear in org charts and Workday reports.',
+        example:'Frontend Engineering',
+        relations:[],
+        validation:['Should match how the team is known internally','Avoid abbreviations that could be ambiguous'] },
+      { id:'Manager_Worker_ID', label:'Manager employee ID', type:'ref', req:'Required', width:'normal',
+        desc:'The Worker_ID of the person who manages this org. This manager will be the default approver for workers in this org.',
+        example:'EMP-001',
+        relations:['← Must match Worker_ID in the Workers sheet','⚠ The manager must be loaded as a Worker before this org can be linked'],
+        validation:['Must exactly match a Worker_ID','The manager themselves must belong to a separate supervisory org (their own manager\'s org)','Circular management (manager reports to themselves) will cause errors'] },
+      { id:'Superior_Organization_ID', label:'Parent org code', type:'ref', req:'Optional', width:'normal',
+        desc:'If this team sits inside a larger org (e.g. Frontend Engineering inside Technology), enter the parent org\'s Organization_ID. Leave blank for top-level orgs.',
+        example:'ORG-TECH',
+        relations:['← Must match another Organization_ID in this same sheet'],
+        validation:['Must match an existing Organization_ID','Leave blank only for the very top-level org','Do not create circular hierarchies'] },
+      { id:'Cost_Center_ID', label:'Financial cost center', type:'ref', req:'Optional', width:'normal',
+        desc:'The Cost Center this org charges to. Maps HR headcount to the Finance cost structure.',
+        example:'CC-TECH-01',
+        relations:['← Must match Cost_Center_ID in the Cost Centers sheet'],
+        validation:['Must exactly match an existing Cost_Center_ID','If left blank, workers in this org will have no financial mapping — this will cause issues in Workday Financials'] },
+      { id:'Location_ID', label:'Primary location', type:'ref', req:'Optional', width:'normal',
+        desc:'The default physical location for this team. Workers in this org inherit this location unless overridden at position or worker level.',
+        example:'LOC-HCM-01',
+        relations:['← Must match Location_ID in the Locations sheet'],
+        validation:['Must exactly match an existing Location_ID','This sets the default — individual positions and workers can override it'] },
+      { id:'Availability_Date', label:'Org active from date', type:'date', req:'Required', width:'narrow',
+        desc:'When this org becomes available to assign positions to. Use the company founding date for historical migrations.',
+        example:'2020-01-01',
+        relations:[],
+        validation:['Format: YYYY-MM-DD','Must be on or before the effective date of any positions assigned to this org'] }
+    ]
+  },
+
+  position: {
+    title: 'Positions',
+    color: '#1B7A5A',
+    explainer: 'A Position is a headcount slot — the "chair" that exists in the organisation independently of whether someone sits in it. One Position is filled by one Worker. A vacant Position still exists as a record. This is fundamental to headcount planning in Workday.',
+    analogy: 'If you have budget for 5 Engineers but only 4 are hired, you have 5 Positions — 4 filled, 1 vacant. In your old system you only tracked the 4 people. In Workday, the empty chair also exists.',
+    eib: 'Create Position',
+    fields: [
+      { id:'Position_ID', label:'Position code', type:'text', req:'Required', width:'narrow',
+        desc:'Unique code for this position. Workers reference this to show which position they fill.',
+        example:'POS-FE-001',
+        relations:['→ Workers reference this to indicate which position they fill (Position_ID)'],
+        validation:['Must be unique across all positions','No spaces — hyphens only','Recommended format: POS-[ORG]-[NUMBER]'] },
+      { id:'Position_Title', label:'Position-specific title', type:'text', req:'Optional', width:'wide',
+        desc:'A custom title for this specific position if it differs from the Job Profile title. For example, "Team Lead, Frontend" instead of just "Senior Software Engineer".',
+        example:'Team Lead, Frontend',
+        relations:[],
+        validation:['Leave blank to inherit the title from the linked Job Profile','Only needed when this particular position has a distinct title'] },
+      { id:'Organization_ID', label:'Team (Supervisory Org)', type:'ref', req:'Required', width:'normal',
+        desc:'Which team this position belongs to. Defines the reporting line and who approves actions for this position.',
+        example:'ORG-TECH-FE',
+        relations:['← Must match Organization_ID in the Supervisory Orgs sheet'],
+        validation:['Must exactly match an existing Organization_ID','This determines the manager and approval chain for this position\'s worker'] },
+      { id:'Job_Profile_ID', label:'Role definition', type:'ref', req:'Required', width:'normal',
+        desc:'The Job Profile this position uses to define the role type, level, and classification. Many positions can share one Job Profile.',
+        example:'JP-SWE-SR',
+        relations:['← Must match Job_Profile_ID in the Job Profiles sheet'],
+        validation:['Must exactly match an existing Job_Profile_ID','The Job Profile determines the pay grade suggestion, exempt status, and job family for this position'] },
+      { id:'Location_ID', label:'Work location', type:'ref', req:'Required', width:'normal',
+        desc:'Where this position is physically based. Can differ from the Supervisory Org\'s default location (e.g. a remote position in a team that is otherwise office-based).',
+        example:'LOC-HCM-01',
+        relations:['← Must match Location_ID in the Locations sheet'],
+        validation:['Must exactly match an existing Location_ID','Affects tax jurisdiction, time zone, and payroll rules for the worker in this position'] },
+      { id:'FTE', label:'Full-time equivalent', type:'num', req:'Required', width:'narrow',
+        desc:'The FTE value of this position. 1 = full time. 0.5 = half time. Use decimals for part-time headcount planning.',
+        example:'1',
+        relations:[],
+        validation:['Must be a number between 0.01 and 1','Use decimals: 0.5, 0.75, 0.8 — not fractions','Must match the worker\'s contracted FTE when they are hired in'] },
+      { id:'Available_For_Hire', label:'Open to recruit?', type:'bool', req:'Required', width:'narrow',
+        desc:'Whether this position can currently be recruited for. Set "Yes" for vacant, open positions. "No" for filled positions or those on a hiring freeze.',
+        example:'No',
+        relations:[],
+        validation:['Allowed values: Yes or No','For migration of existing employees, this should be "No" (the position is filled)','Vacant positions being migrated for headcount planning should be "Yes"'] },
+      { id:'Worker_Type', label:'Employee or contractor?', type:'ref', req:'Required', width:'normal',
+        desc:'What kind of worker this position is designed for. Controls which hire action to use and which payroll rules apply.',
+        example:'Employee',
+        relations:[],
+        validation:['Allowed values: Employee, Contingent Worker','Must match the Worker_Type of the worker who fills this position'] },
+      { id:'Effective_Date', label:'Position created date', type:'date', req:'Required', width:'narrow',
+        desc:'When this position was created or approved. For migration, use the hire date of the current occupant, or the earliest date the position was approved.',
+        example:'2021-03-01',
+        relations:[],
+        validation:['Format: YYYY-MM-DD','Must be on or before the worker\'s hire date for filled positions'] }
+    ]
+  },
+
+  worker: {
+    title: 'Worker & Personal Information',
+    color: '#4F46A0',
+    explainer: 'This is the core employee record — who the person is. Every other worker-related record (employment details, compensation) links back to the Worker_ID you create here. Workers are loaded after all reference data and positions are in place.',
+    analogy: 'This is the "person" record — not the "job" record. The Worker_ID you assign here is the master key that links everything together across all subsequent sheets.',
+    eib: 'Hire Employee / Add Contingent Worker',
+    fields: [
+      { id:'Worker_ID', label:'Employee ID', type:'text', req:'Required', width:'narrow',
+        desc:'Your company\'s unique employee number. This is the primary key that links Employment Details, Compensation, and all other worker sub-records. Use your existing employee number system.',
+        example:'EMP-001',
+        relations:['→ Employment Details reference this (Worker_ID)','→ Compensation records reference this (Worker_ID)','→ Supervisory Orgs reference this for the manager (Manager_Worker_ID)'],
+        validation:['Must be absolutely unique — duplicates will cause all downstream records to fail','Use your existing payroll / HR system employee IDs where possible','No spaces'] },
+      { id:'Legal_First_Name', label:'Legal first name', type:'text', req:'Required', width:'normal',
+        desc:'First name exactly as it appears on the employee\'s official identity document. Used for payslips and legal reporting.',
+        example:'Van An',
+        relations:[],
+        validation:['Must match government ID documentation','Vietnamese names: enter given name (e.g. "Van An") — confirm with employee which part they use as given vs family name'] },
+      { id:'Legal_Last_Name', label:'Legal last name', type:'text', req:'Required', width:'normal',
+        desc:'Last name / surname as on official documents.',
+        example:'Nguyen',
+        relations:[],
+        validation:['Must match government ID documentation'] },
+      { id:'Preferred_Name', label:'Display / preferred name', type:'text', req:'Optional', width:'normal',
+        desc:'The name the employee goes by at work if different from their legal name. This is what appears in directory searches and on their Workday home screen.',
+        example:'An Nguyen',
+        relations:[],
+        validation:['Leave blank to default to legal name','Useful for employees who use an English name at work'] },
+      { id:'Date_of_Birth', label:'Date of birth', type:'date', req:'Conditional', width:'narrow',
+        desc:'Required in most tenants for payroll, benefits eligibility, and statutory reporting. Treat as highly sensitive data.',
+        example:'1990-05-15',
+        relations:[],
+        validation:['Format: YYYY-MM-DD','Required for payroll in most countries','Must result in an employee aged 15 or older at hire date (configurable per tenant)'] },
+      { id:'Gender', label:'Gender', type:'ref', req:'Optional', width:'narrow',
+        desc:'As configured in the Workday tenant. Used for workforce analytics and statutory reporting.',
+        example:'Male',
+        relations:[],
+        validation:['Allowed values depend on tenant configuration — typically: Male, Female, Not Declared','Ask your Workday consultant for the exact tenant values'] },
+      { id:'National_ID', label:'National ID / CCCD', type:'text', req:'Conditional', width:'normal',
+        desc:'Government-issued ID number. For Vietnam: CCCD (Căn cước công dân) 12-digit number. Required for payroll tax filing.',
+        example:'079090012345',
+        relations:[],
+        validation:['Required for payroll in most countries','Vietnam CCCD: 12 digits, no spaces or dashes','Store in the correct ID type field — ask consultant which National ID Type to configure'] },
+      { id:'Email_Work', label:'Work email address', type:'text', req:'Required', width:'wide',
+        desc:'The employee\'s corporate email address. Used as the Workday login identifier. Must be accessible to the employee.',
+        example:'an.nguyen@company.com',
+        relations:[],
+        validation:['Must be a valid email format','Must be unique — no two workers can share the same email','Must be accessible before go-live so employees can log in'] },
+      { id:'Position_ID', label:'Position they fill', type:'ref', req:'Required', width:'normal',
+        desc:'Which position this worker occupies. Links the person to their headcount slot, org, job profile, and location.',
+        example:'POS-FE-001',
+        relations:['← Must match Position_ID in the Positions sheet','This single reference gives the worker their org, job profile, manager, and location'],
+        validation:['Must exactly match an existing Position_ID','Each position can only be filled by ONE worker — duplicate assignments will cause errors','The Position\'s Available_For_Hire should be set to "No" once filled'] },
+      { id:'Hire_Date', label:'Start date at company', type:'date', req:'Required', width:'narrow',
+        desc:'The employee\'s official start date. Used as the anchor date for employment records, benefit eligibility, and service calculations.',
+        example:'2021-03-01',
+        relations:[],
+        validation:['Format: YYYY-MM-DD','Must be on or after the Position\'s Effective_Date','Must be on or before today for historical migration'] },
+      { id:'Worker_Type', label:'Employee or contractor?', type:'ref', req:'Required', width:'normal',
+        desc:'The nature of the working relationship. Determines which payroll, benefits, and leave rules apply.',
+        example:'Employee',
+        relations:[],
+        validation:['Allowed values: Employee, Contingent Worker','Must match the Worker_Type configured on the Position they fill'] }
+    ]
+  },
+
+  employment: {
+    title: 'Employment Details',
+    color: '#4F46A0',
+    explainer: 'Employment Details describe the nature of the working arrangement — full time vs part time, contracted hours, service dates. These fields drive leave entitlement calculations, payroll frequency, and benefits eligibility.',
+    analogy: 'The Worker record says WHO someone is. Employment Details say HOW they work. One row per worker — link back to the Worker using Worker_ID.',
+    eib: 'Edit Employment Details',
+    fields: [
+      { id:'Worker_ID', label:'Employee ID (link to worker)', type:'ref', req:'Required', width:'normal',
+        desc:'Links these employment details to the right worker record. Must exactly match a Worker_ID from the Workers sheet.',
+        example:'EMP-001',
+        relations:['← Must match Worker_ID in the Workers sheet'],
+        validation:['Must exactly match an existing Worker_ID','One row per worker — do not duplicate'] },
+      { id:'Employment_Type', label:'Type of employment', type:'ref', req:'Required', width:'normal',
+        desc:'The nature of the employment contract. "Regular" means a permanent, ongoing employment relationship.',
+        example:'Regular',
+        relations:[],
+        validation:['Allowed values: Regular, Fixed Term, Casual, Intern','Fixed Term requires an end date in a separate field','Check your tenant configuration for available values'] },
+      { id:'Full_Part_Time', label:'Full-time or part-time', type:'ref', req:'Required', width:'normal',
+        desc:'Whether this worker is on a full-time or part-time arrangement.',
+        example:'Full time',
+        relations:[],
+        validation:['Allowed values: Full time, Part time (must match exactly including casing)','Must be consistent with Scheduled_Weekly_Hours and FTE_Percent'] },
+      { id:'Scheduled_Weekly_Hours', label:'Contracted hours/week', type:'num', req:'Required', width:'normal',
+        desc:'The number of hours this worker is contracted to work per week. Drives leave accrual calculations and overtime eligibility.',
+        example:'40',
+        relations:[],
+        validation:['Must be a number','Full time is typically 40 hours (confirm with your payroll team per country)','Part time: enter actual contracted hours, e.g. 24 for 3 days/week','Must be consistent with Full_Part_Time and FTE_Percent'] },
+      { id:'FTE_Percent', label:'FTE percentage', type:'num', req:'Optional', width:'narrow',
+        desc:'Full-time equivalent expressed as a percentage. 100 = full time. 60 = three-day week. Calculated automatically if left blank based on hours.',
+        example:'100',
+        relations:[],
+        validation:['Must be between 1 and 100','Calculated as: (Scheduled_Weekly_Hours / Standard_Weekly_Hours) × 100','Must match Full_Part_Time classification'] },
+      { id:'Original_Hire_Date', label:'Very first company start date', type:'date', req:'Required', width:'normal',
+        desc:'The employee\'s very first hire date, even if they left and returned. Used for continuous service, long-service awards, and some statutory leave calculations.',
+        example:'2021-03-01',
+        relations:[],
+        validation:['Format: YYYY-MM-DD','May differ from Hire_Date if the employee had a break in service','Must be on or before the worker\'s Hire_Date'] },
+      { id:'Continuous_Service_Date', label:'Service date for benefits', type:'date', req:'Optional', width:'normal',
+        desc:'The date used to calculate benefit entitlements and leave accrual. May differ from Original_Hire_Date if prior service from another employer is being recognised.',
+        example:'2021-03-01',
+        relations:[],
+        validation:['Format: YYYY-MM-DD','Discuss with HR policy team whether to carry over service from previous employers','Often the same as Original_Hire_Date'] },
+      { id:'Pay_Group', label:'Payroll group', type:'ref', req:'Required', width:'normal',
+        desc:'Which payroll run this worker is included in. Controls pay frequency and the payroll calendar. Must match a Pay Group configured in your Workday tenant.',
+        example:'Monthly Vietnam',
+        relations:[],
+        validation:['Must match a Pay Group name configured in the Workday tenant','Examples: Monthly Vietnam, Bi-weekly US, Weekly UK','Ask your Workday consultant for the exact values in your tenant'] },
+      { id:'Effective_Date', label:'Details effective from', type:'date', req:'Required', width:'narrow',
+        desc:'When these employment details take effect. For migration, this is usually the same as the worker\'s Hire_Date.',
+        example:'2021-03-01',
+        relations:[],
+        validation:['Format: YYYY-MM-DD','Must match or be after the worker\'s Hire_Date','Cannot pre-date the go-live date without special historical data loading configuration'] }
+    ]
+  },
+
+  comp: {
+    title: 'Compensation',
+    color: '#B83020',
+    explainer: 'The compensation record captures what each worker is paid — their salary or hourly rate, currency, and any allowances. This is always loaded last, after the worker and position are established. One row per pay component per worker.',
+    analogy: 'The Comp Grade defines the band (min to max range). This record stores the ACTUAL salary for each individual within that band. An employee with a base salary AND a housing allowance would have two rows.',
+    eib: 'Request Compensation Change (Initial Hire)',
+    fields: [
+      { id:'Worker_ID', label:'Employee ID (link to worker)', type:'ref', req:'Required', width:'normal',
+        desc:'Links this pay record to the correct worker. Must exactly match a Worker_ID from the Workers sheet.',
+        example:'EMP-001',
+        relations:['← Must match Worker_ID in the Workers sheet'],
+        validation:['Must exactly match an existing Worker_ID','Multiple rows allowed per worker — one per pay component (salary, allowance, bonus)'] },
+      { id:'Compensation_Plan', label:'Type of pay component', type:'ref', req:'Required', width:'normal',
+        desc:'The category of this pay component. Controls how Workday calculates and reports this payment.',
+        example:'Salary',
+        relations:[],
+        validation:['Allowed values depend on tenant configuration — common values: Salary, Hourly, Allowance, Car Allowance, Housing Allowance','Ask your Workday consultant for configured plans in your tenant'] },
+      { id:'Amount', label:'Pay amount', type:'num', req:'Required', width:'narrow',
+        desc:'The pay amount in the specified currency and frequency. For annual salary: enter the full yearly amount. For allowances: enter the monthly or annual amount per the frequency selected.',
+        example:'100000',
+        relations:[],
+        validation:['Numbers only — no "$", "VND", commas, or spaces','For salary: enter annual amount if Frequency = Annual','Negative values are not allowed'] },
+      { id:'Currency', label:'Pay currency', type:'ref', req:'Required', width:'narrow',
+        desc:'The currency this pay component is paid in. Can differ by component (e.g. base salary in VND, housing allowance in USD).',
+        example:'USD',
+        relations:[],
+        validation:['ISO 4217 code: VND, USD, SGD, etc.','Must match a currency configured in your Workday tenant','Should align with the Compensation Grade currency for the same component'] },
+      { id:'Frequency', label:'Pay frequency', type:'ref', req:'Required', width:'normal',
+        desc:'How often this pay component is paid. Must match a frequency configured in your Workday tenant.',
+        example:'Annual',
+        relations:[],
+        validation:['Allowed values: Annual, Monthly, Semi-Monthly, Bi-Weekly, Weekly, Hourly','For salary: use Annual (Workday will calculate monthly/bi-weekly automatically)','For hourly workers: use Hourly and set Amount to the hourly rate'] },
+      { id:'Compensation_Grade_ID', label:'Salary band this falls in', type:'ref', req:'Optional', width:'normal',
+        desc:'Which compensation grade this worker\'s pay falls under. Used to flag under/over-band pay and for compensation analytics.',
+        example:'CG-TECH-SR',
+        relations:['← Must match Compensation_Grade_ID in the Comp Grades sheet'],
+        validation:['Must exactly match an existing Compensation_Grade_ID if provided','The Amount should fall between the grade\'s Minimum and Maximum — Workday will flag if outside the band','Leave blank if not using formal grade structures'] },
+      { id:'Effective_Date', label:'Pay rate effective from', type:'date', req:'Required', width:'narrow',
+        desc:'When this pay rate starts. For initial migration, this is usually the same as the worker\'s hire date.',
+        example:'2021-03-01',
+        relations:[],
+        validation:['Format: YYYY-MM-DD','Must be on or after the worker\'s Hire_Date','Historical pay changes require separate rows with earlier effective dates'] }
+    ]
+  }
+};
+
+// ════════════════════════════════════════
+// SECTION METADATA
+// ════════════════════════════════════════
+var SECTIONS = [
+  { id:'guide', title:'Guide' },
+  { id:'location', title:'Locations' },
+  { id:'jfg', title:'Job Family Groups' },
+  { id:'jf', title:'Job Families' },
+  { id:'jp', title:'Job Profiles' },
+  { id:'compgrade', title:'Comp Grades' },
+  { id:'cc', title:'Cost Centers' },
+  { id:'suporg', title:'Supervisory Orgs' },
+  { id:'position', title:'Positions' },
+  { id:'worker', title:'Workers' },
+  { id:'employment', title:'Employment' },
+  { id:'comp', title:'Compensation' }
+];
+
+// Row data store: { sectionId: [ {field:val,...}, ... ] }
+var DATA = {};
+
+// ════════════════════════════════════════
+// RENDER SECTIONS
+// ════════════════════════════════════════
+function renderSection(sid) {
+  var sc = SCHEMA[sid];
+  if (!sc) return;
+  var el = document.getElementById('section-' + sid);
+
+  var html = '';
+  html += '<div class="ph"><h1>' + sc.title + '</h1><p>' + sc.explainer + '</p></div>';
+  html += '<div class="explainer"><div class="explainer-icon">💡</div><div><h3>Think of it this way</h3><p>' + sc.analogy + '</p></div></div>';
+  html += '<div class="datagrid-wrap">';
+  html += '<div class="datagrid-toolbar">';
+  html += '<div class="dg-left"><span class="dg-name">' + sc.title + '</span><span class="dg-count" id="cnt-' + sid + '">0 rows</span></div>';
+  html += '<div class="dg-actions">';
+  html += '<button class="btn-sm" onclick="addRow(\'' + sid + '\')">+ Add row</button>';
+  html += '</div></div>';
+  html += '<div class="datagrid-scroll"><div class="datagrid" id="grid-' + sid + '">';
+
+  // Row number header column
+  html += '<div class="dg-col dg-col-rowhead">';
+  html += '<div class="dg-col-head" style="min-height:90px;"><span style="font-size:10px;color:var(--text3)">#</span></div>';
+  html += '<div id="rowhead-' + sid + '"></div>';
+  html += '</div>';
+
+  // Field columns
+  sc.fields.forEach(function(f) {
+    var wClass = f.width === 'wide' ? 'wide' : (f.width === 'narrow' ? 'narrow' : '');
+    html += '<div class="dg-col ' + wClass + '">';
+    html += '<div class="dg-col-head">';
+    html += '<button class="info-btn" data-sid="' + sid + '" data-fid="' + f.id + '" title="Field info">ⓘ</button>';
+    html += '<div class="dg-field-name">' + f.id.replace(/_/g,'_&#8203;') + '</div>';
+    html += '<div class="dg-label">' + f.label + '</div>';
+    html += '<div class="dg-badges"><span class="badge ' + reqClass(f.req) + '">' + f.req + '</span><span class="badge ' + typeClass(f.type) + '">' + f.type + '</span></div>';
+    html += '</div>';
+    html += '<div id="cells-' + sid + '-' + f.id + '"></div>';
+    html += '</div>';
+  });
+
+  // Delete column
+  html += '<div class="dg-col dg-col-del">';
+  html += '<div class="dg-col-head" style="min-height:90px;"></div>';
+  html += '<div id="delbtns-' + sid + '"></div>';
+  html += '</div>';
+
+  html += '</div></div>'; // grid, scroll
+  html += '<div class="empty-state" id="empty-' + sid + '"><span style="font-size:24px;">📋</span><p>No rows yet. Click <b>+ Add row</b> to begin entering your ' + sc.title.toLowerCase() + '.</p></div>';
+  html += '</div>'; // datagrid-wrap
+
+  el.innerHTML = html;
+
+  // Attach info button listeners
+  el.querySelectorAll('.info-btn').forEach(function(btn) {
+    btn.addEventListener('mouseenter', function(e) { showTooltip(e, btn.dataset.sid, btn.dataset.fid); });
+    btn.addEventListener('mouseleave', hideTooltip);
+  });
+}
+
+function reqClass(r) {
+  if (r === 'Required') return 'b-req';
+  if (r === 'Conditional') return 'b-cond';
+  return 'b-opt';
+}
+function typeClass(t) {
+  var m = {text:'b-text',ref:'b-ref',date:'b-date',bool:'b-bool',num:'b-num'};
+  return m[t] || 'b-text';
+}
+
+// ════════════════════════════════════════
+// ADD ROW
+// ════════════════════════════════════════
+function addRow(sid) {
+  if (!DATA[sid]) DATA[sid] = [];
+  var idx = DATA[sid].length;
+  DATA[sid].push({});
+
+  var sc = SCHEMA[sid];
+  var rowN = idx + 1;
+
+  // Row number cell
+  var rh = document.getElementById('rowhead-' + sid);
+  var rhCell = document.createElement('div');
+  rhCell.className = 'dg-cell-rowhead';
+  rhCell.id = 'rh-' + sid + '-' + idx;
+  rhCell.innerHTML = '<div class="row-num">' + rowN + '</div>';
+  rh.appendChild(rhCell);
+
+  // Field cells
+  sc.fields.forEach(function(f) {
+    var container = document.getElementById('cells-' + sid + '-' + f.id);
+    var cell = document.createElement('div');
+    cell.className = 'dg-cell';
+    cell.id = 'cell-' + sid + '-' + f.id + '-' + idx;
+
+    var inp = document.createElement('input');
+    inp.type = 'text';
+    inp.className = 'dg-input';
+    inp.placeholder = f.example || '';
+    inp.setAttribute('data-sid', sid);
+    inp.setAttribute('data-fid', f.id);
+    inp.setAttribute('data-idx', idx);
+    inp.addEventListener('input', function() {
+      DATA[sid][idx][f.id] = this.value.trim();
+      validateCell(this, sid, f, idx);
+      updateBadge(sid);
+    });
+    inp.addEventListener('focus', function() {
+      this.style.background = '#fff';
+    });
+
+    var errDiv = document.createElement('div');
+    errDiv.className = 'val-err';
+    errDiv.id = 'err-' + sid + '-' + f.id + '-' + idx;
+
+    cell.appendChild(inp);
+    cell.appendChild(errDiv);
+    container.appendChild(cell);
+  });
+
+  // Delete button
+  var delContainer = document.getElementById('delbtns-' + sid);
+  var delCell = document.createElement('div');
+  delCell.className = 'dg-cell';
+  delCell.style.justifyContent = 'center';
+  delCell.id = 'del-' + sid + '-' + idx;
+  var delBtn = document.createElement('button');
+  delBtn.className = 'del-btn';
+  delBtn.title = 'Remove row';
+  delBtn.innerHTML = '×';
+  delBtn.onclick = function() { deleteRow(sid, idx); };
+  delCell.appendChild(delBtn);
+  delContainer.appendChild(delCell);
+
+  // Show/hide empty state
+  document.getElementById('empty-' + sid).style.display = 'none';
+  updateBadge(sid);
+
+  // Focus first input in new row
+  var firstInp = document.querySelector('#cells-' + sid + '-' + sc.fields[0].id + ' .dg-input:last-of-type');
+  if (firstInp) setTimeout(function() { firstInp.focus(); }, 50);
+}
+
+function deleteRow(sid, idx) {
+  // Hide all cells for this row
+  var sc = SCHEMA[sid];
+  sc.fields.forEach(function(f) {
+    var c = document.getElementById('cell-' + sid + '-' + f.id + '-' + idx);
+    if (c) c.style.display = 'none';
+  });
+  var rh = document.getElementById('rh-' + sid + '-' + idx);
+  if (rh) rh.style.display = 'none';
+  var del = document.getElementById('del-' + sid + '-' + idx);
+  if (del) del.style.display = 'none';
+
+  // Mark as deleted in data
+  if (DATA[sid] && DATA[sid][idx]) DATA[sid][idx].__deleted = true;
+
+  // Check if all deleted
+  var allGone = DATA[sid].every(function(r) { return r.__deleted; });
+  if (allGone) document.getElementById('empty-' + sid).style.display = 'block';
+  updateBadge(sid);
+}
+
+// ════════════════════════════════════════
+// VALIDATION
+// ════════════════════════════════════════
+function validateCell(inp, sid, field, idx) {
+  var val = inp.value.trim();
+  var errEl = document.getElementById('err-' + sid + '-' + field.id + '-' + idx);
+  var msg = '';
+
+  if (!val) {
+    inp.classList.remove('filled', 'err');
+    if (errEl) { errEl.textContent = ''; errEl.classList.remove('show'); }
+    return;
+  }
+
+  // Type checks
+  if (field.type === 'date') {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(val)) {
+      msg = '⚠ Use YYYY-MM-DD format (e.g. 2021-03-01)';
+    }
+  }
+  if (field.type === 'bool') {
+    if (val !== 'Yes' && val !== 'No') {
+      msg = '⚠ Enter exactly "Yes" or "No"';
+    }
+  }
+  if (field.type === 'num') {
+    if (isNaN(val) || val === '') {
+      msg = '⚠ Numbers only — no symbols or commas';
+    }
+  }
+  if (field.type === 'text' && (val.indexOf(' ') > -1) && field.id.indexOf('_ID') > -1) {
+    msg = '⚠ IDs should not contain spaces';
+  }
+
+  // Cross-reference checks
+  var refs = {
+    'Job_Family_Group_ID': { sheet:'jfg', col:'Job_Family_Group_ID' },
+    'Job_Family_ID': { sheet:'jf', col:'Job_Family_ID' },
+    'Job_Profile_ID': { sheet:'jp', col:'Job_Profile_ID' },
+    'Compensation_Grade_ID': { sheet:'compgrade', col:'Compensation_Grade_ID' },
+    'Cost_Center_ID': { sheet:'cc', col:'Cost_Center_ID' },
+    'Organization_ID': { sheet:'suporg', col:'Organization_ID' },
+    'Position_ID': { sheet:'position', col:'Position_ID' },
+    'Location_ID': { sheet:'location', col:'Location_ID' },
+    'Superior_Organization_ID': { sheet:'suporg', col:'Organization_ID' },
+    'Hierarchical_Parent_ID': { sheet:'cc', col:'Cost_Center_ID' },
+    'Worker_ID': { sheet:'worker', col:'Worker_ID' },
+    'Manager_Worker_ID': { sheet:'worker', col:'Worker_ID' }
+  };
+
+  if (field.type === 'ref' && refs[field.id] && !msg) {
+    var ref = refs[field.id];
+    var refData = DATA[ref.sheet] || [];
+    var exists = refData.some(function(r) { return !r.__deleted && r[ref.col] === val; });
+    if (!exists) {
+      msg = '⚠ "' + val + '" not found in ' + ref.sheet + ' — check spelling';
+    }
+  }
+
+  if (msg) {
+    inp.classList.add('err');
+    inp.classList.remove('filled');
+  } else {
+    inp.classList.add('filled');
+    inp.classList.remove('err');
+  }
+  if (errEl) {
+    errEl.textContent = msg;
+    errEl.classList.toggle('show', !!msg);
+  }
+}
+
+// ════════════════════════════════════════
+// TOOLTIP
+// ════════════════════════════════════════
+var ttTimeout;
+function showTooltip(e, sid, fid) {
+  var sc = SCHEMA[sid];
+  if (!sc) return;
+  var field = sc.fields.find(function(f) { return f.id === fid; });
+  if (!field) return;
+
+  var tt = document.getElementById('tooltip');
+  var html = '';
+  html += '<div class="tt-label">' + field.id + '</div>';
+  html += '<div class="tt-desc">' + field.desc + '</div>';
+
+  if (field.relations && field.relations.length) {
+    html += '<div class="tt-section">Data relationships</div>';
+    html += '<div class="tt-rel">';
+    field.relations.forEach(function(r) { html += '<span>' + r + '</span>'; });
+    html += '</div>';
+  }
+
+  if (field.validation && field.validation.length) {
+    html += '<div class="tt-section">Validation rules</div>';
+    html += '<div class="tt-val">';
+    field.validation.forEach(function(v) { html += '<b>→</b> ' + v + '<br>'; });
+    html += '</div>';
+  }
+
+  if (field.example) {
+    html += '<div class="tt-example">Example: ' + field.example + '</div>';
+  }
+
+  tt.innerHTML = html;
+
+  // Position tooltip
+  var rect = e.target.getBoundingClientRect();
+  var ttW = 300, ttH = 300;
+  var left = rect.right + 8;
+  var top = rect.top;
+  if (left + ttW > window.innerWidth - 10) left = rect.left - ttW - 8;
+  if (top + ttH > window.innerHeight - 10) top = window.innerHeight - ttH - 10;
+  tt.style.left = Math.max(8, left) + 'px';
+  tt.style.top = Math.max(8, top) + 'px';
+  tt.classList.add('show');
+}
+
+function hideTooltip() {
+  document.getElementById('tooltip').classList.remove('show');
+}
+
+// ════════════════════════════════════════
+// NAVIGATION
+// ════════════════════════════════════════
+function nav(id) {
+  SECTIONS.forEach(function(s) {
+    var el = document.getElementById('section-' + s.id);
+    var tab = document.getElementById('tab-' + s.id);
+    if (el) el.classList.toggle('active', s.id === id);
+    if (tab) tab.classList.toggle('active', s.id === id);
+  });
+}
+
+// ════════════════════════════════════════
+// BADGE UPDATE
+// ════════════════════════════════════════
+function updateBadge(sid) {
+  var rows = (DATA[sid] || []).filter(function(r) { return !r.__deleted; });
+  var filled = rows.filter(function(r) {
+    return Object.keys(r).some(function(k) { return k !== '__deleted' && r[k]; });
+  }).length;
+  var b = document.getElementById('badge-' + sid);
+  if (b) b.textContent = filled;
+  var c = document.getElementById('cnt-' + sid);
+  if (c) c.textContent = filled + ' row' + (filled !== 1 ? 's' : '');
+}
+
+// ════════════════════════════════════════
+// CLEAR ALL
+// ════════════════════════════════════════
+function clearAll() {
+  if (!confirm('Clear all entered data? This cannot be undone.')) return;
+  Object.keys(SCHEMA).forEach(function(sid) {
+    DATA[sid] = [];
+    var sc = SCHEMA[sid];
+    sc.fields.forEach(function(f) {
+      var c = document.getElementById('cells-' + sid + '-' + f.id);
+      if (c) c.innerHTML = '';
+    });
+    var rh = document.getElementById('rowhead-' + sid);
+    if (rh) rh.innerHTML = '';
+    var db = document.getElementById('delbtns-' + sid);
+    if (db) db.innerHTML = '';
+    var emp = document.getElementById('empty-' + sid);
+    if (emp) emp.style.display = 'block';
+    updateBadge(sid);
+  });
+  showToast('All data cleared');
+}
+
+// ════════════════════════════════════════
+// EXPORT MODAL
+// ════════════════════════════════════════
+var exportMode = 'template';
+function openExportModal() {
+  document.getElementById('modal-bg').classList.add('show');
+}
+function closeModal() {
+  document.getElementById('modal-bg').classList.remove('show');
+}
+function selectOpt(mode) {
+  exportMode = mode;
+  document.getElementById('opt-template').classList.toggle('selected', mode === 'template');
+  document.getElementById('opt-data').classList.toggle('selected', mode === 'data');
+}
+
+var LOAD_ORDER = ['location','jfg','jf','jp','compgrade','cc','suporg','position','worker','employment','comp'];
+var SHEET_NAMES = {
+  location:'1_Locations', jfg:'2_Job_Family_Groups', jf:'3_Job_Families',
+  jp:'4_Job_Profiles', compgrade:'5_Comp_Grades', cc:'6_Cost_Centers',
+  suporg:'7_Supervisory_Orgs', position:'8_Positions', worker:'9_Workers',
+  employment:'10_Employment', comp:'11_Compensation'
+};
+
+function doExport() {
+  var wb = XLSX.utils.book_new();
+
+  // Instructions sheet
+  var instrData = [
+    ['Workday HCM Data Migration Package'],
+    [''],
+    ['Generated on:', new Date().toLocaleDateString()],
+    ['Export type:', exportMode === 'template' ? 'Blank template' : 'With entered data'],
+    [''],
+    ['IMPORTANT — load sheets in the numbered order shown below.'],
+    ['Reference data must exist in Workday before records that reference it can be uploaded.'],
+    [''],
+    ['#','Sheet','EIB Template','Depends on'],
+    ['1','Locations','Create/Edit Location','—'],
+    ['2','Job Family Groups','Create Job Family Group','—'],
+    ['3','Job Families','Create Job Family','Sheet 2'],
+    ['4','Job Profiles','Create Job Profile','Sheet 3'],
+    ['5','Comp Grades','Load Compensation Grade','—'],
+    ['6','Cost Centers','Load Cost Centers','—'],
+    ['7','Supervisory Orgs','Create Supervisory Organization','Sheets 5, 6'],
+    ['8','Positions','Create Position','Sheets 4, 6, 7'],
+    ['9','Workers','Hire Employee','Sheet 8'],
+    ['10','Employment Details','Edit Employment Details','Sheet 9'],
+    ['11','Compensation','Request Compensation Change','Sheets 5, 9'],
+  ];
+  var wsInstr = XLSX.utils.aoa_to_sheet(instrData);
+  wsInstr['!cols'] = [{wch:4},{wch:22},{wch:32},{wch:20}];
+  XLSX.utils.book_append_sheet(wb, wsInstr, '0_Instructions');
+
+  LOAD_ORDER.forEach(function(sid) {
+    var sc = SCHEMA[sid];
+    var cols = sc.fields.map(function(f) { return f.id; });
+    var headers = sc.fields.map(function(f) { return f.label; });
+
+    var wsData = [];
+    // Row 1: Workday field IDs
+    wsData.push(cols);
+    // Row 2: Plain English labels
+    wsData.push(headers);
+
+    if (exportMode === 'data') {
+      var rows = (DATA[sid] || []).filter(function(r) { return !r.__deleted; });
+      rows.forEach(function(row) {
+        wsData.push(cols.map(function(c) { return row[c] || ''; }));
+      });
+    }
+
+    var ws = XLSX.utils.aoa_to_sheet(wsData);
+    ws['!cols'] = cols.map(function() { return { wch: 22 }; });
+    // Freeze first two rows
+    ws['!freeze'] = { xSplit: 0, ySplit: 2 };
+    XLSX.utils.book_append_sheet(wb, ws, SHEET_NAMES[sid]);
+  });
+
+  var fname = exportMode === 'template'
+    ? 'Workday_HCM_Template_' + today() + '.xlsx'
+    : 'Workday_HCM_Data_' + today() + '.xlsx';
+
+  XLSX.writeFile(wb, fname);
+  closeModal();
+  showToast(exportMode === 'template' ? 'Template exported — share with your client' : 'Data exported — ready for EIB review');
+}
+
+function today() {
+  return new Date().toISOString().slice(0,10);
+}
+
+// ════════════════════════════════════════
+// TOAST
+// ════════════════════════════════════════
+function showToast(msg) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(function() { t.classList.remove('show'); }, 3000);
+}
+
+// ════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════
+Object.keys(SCHEMA).forEach(renderSection);
+
+// Close modal on bg click
+document.getElementById('modal-bg').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+</script>
+</body>
+</html>
