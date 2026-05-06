@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Main Concept — Vina Company Workday Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600;12..96,700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="../assets/style.css"/>
+
+<!-- Data files -->
+<script src="data/reference.js"></script>
+<script src="data/orgs.js"></script>
+<script src="data/workers.js"></script>
+<script src="data/concepts.js"></script>
+
+<style>
+html,body{height:100%;overflow:hidden;}
+body{display:flex;flex-direction:column;}
+
+/* CONCEPT TABS */
+.concept-bar{display:flex;align-items:center;gap:3px;padding:0 20px;height:44px;background:var(--surface);border-bottom:2px solid var(--border);flex-shrink:0;overflow-x:auto;}
+.concept-bar::-webkit-scrollbar{display:none;}
+.ctab{display:flex;align-items:center;gap:6px;padding:5px 12px;border-radius:7px;font-size:11px;font-weight:600;cursor:pointer;border:1.5px solid transparent;transition:all .2s;white-space:nowrap;color:var(--text2);}
+.ctab:hover{background:var(--surface2);}
+.ctab-dot{width:6px;height:6px;border-radius:50%;}
+.ctab[data-c="org"]  .ctab-dot{background:var(--c-org);}
+.ctab[data-c="stf"]  .ctab-dot{background:var(--c-stf);}
+.ctab[data-c="jp"]   .ctab-dot{background:var(--c-jp);}
+.ctab[data-c="comp"] .ctab-dot{background:var(--c-comp);}
+.ctab[data-c="sec"]  .ctab-dot{background:var(--c-sec);}
+.ctab[data-c="bp"]   .ctab-dot{background:var(--c-bp);}
+.ctab.active[data-c="org"] {color:var(--c-org);background:#EFF6FF;border-color:#BFDBFE;}
+.ctab.active[data-c="stf"] {color:var(--c-stf);background:#FDF2F8;border-color:#FBCFE8;}
+.ctab.active[data-c="jp"]  {color:var(--c-jp);background:#FFFBEB;border-color:#FDE68A;}
+.ctab.active[data-c="comp"]{color:var(--c-comp);background:#FFF1F2;border-color:#FECDD3;}
+.ctab.active[data-c="sec"] {color:var(--c-sec);background:#ECFDF5;border-color:#A7F3D0;}
+.ctab.active[data-c="bp"]  {color:var(--c-bp);background:#F5F3FF;border-color:#DDD6FE;}
+
+/* BODY */
+.body-wrap{display:flex;flex:1;overflow:hidden;}
+
+/* CHART PANE */
+.chart-pane{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.chart-header{padding:10px 20px 8px;flex-shrink:0;border-bottom:1px solid var(--border);}
+.chart-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:1px;}
+.chart-sub{font-size:10px;color:var(--text3);}
+.chart-scroll{flex:1;overflow:auto;padding:14px 20px 20px;}
+
+/* ORG TYPE SWITCHER */
+.org-type-bar{display:flex;align-items:center;gap:4px;padding:7px 20px;background:var(--surface2);border-bottom:1px solid var(--border);flex-shrink:0;overflow-x:auto;}
+.org-type-bar::-webkit-scrollbar{display:none;}
+.ot-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);margin-right:6px;white-space:nowrap;}
+.otab{display:flex;align-items:center;gap:5px;padding:4px 11px;border-radius:6px;font-size:10px;font-weight:600;cursor:pointer;border:1px solid var(--border2);background:var(--surface);color:var(--text2);transition:all .15s;white-space:nowrap;}
+.otab:hover{border-color:var(--c-org);color:var(--c-org);}
+.otab.active{background:var(--c-org);color:#fff;border-color:var(--c-org);}
+.ot-teach{display:none;padding:7px 20px;background:#EFF6FF;border-bottom:1px solid #BFDBFE;font-size:11px;color:#1e40af;line-height:1.6;}
+.ot-teach.show{display:block;}
+.ot-teach strong{color:#1D4ED8;}
+
+/* ORG CHART */
+.oc-wrap{display:flex;flex-direction:column;gap:6px;min-width:480px;}
+
+/* GROUP BOX */
+.og-box{border-radius:10px;border:1.5px solid var(--border2);background:var(--surface);overflow:hidden;transition:all .2s;}
+.og-box.expanded{border-color:var(--active-color,var(--c-org));box-shadow:0 4px 16px rgba(0,0,0,0.08);}
+.og-header{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;cursor:pointer;transition:background .15s;gap:10px;}
+.og-header:hover{background:var(--surface2);}
+.og-box.expanded .og-header{background:color-mix(in srgb,var(--active-color,var(--c-org)) 6%,white);border-bottom:1px solid color-mix(in srgb,var(--active-color,var(--c-org)) 20%,transparent);}
+.og-left{display:flex;align-items:center;gap:10px;flex:1;min-width:0;}
+.og-icon{width:30px;height:30px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+.og-info{flex:1;min-width:0;}
+.og-type{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);margin-bottom:1px;}
+.og-name{font-size:12px;font-weight:700;color:var(--text);line-height:1.3;}
+.og-meta{font-size:9px;color:var(--text2);margin-top:1px;}
+.og-right{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.og-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:20px;font-size:9px;font-weight:700;}
+.og-arrow{font-size:11px;color:var(--text3);transition:transform .2s;}
+.og-box.expanded .og-arrow{transform:rotate(180deg);}
+.og-workers{display:none;padding:10px 14px 14px;}
+.og-box.expanded .og-workers{display:block;}
+.og-workers-grid{display:flex;flex-wrap:wrap;gap:7px;margin-top:8px;}
+
+/* SUB GROUP */
+.sub-og-box{margin-bottom:6px;border-radius:8px;border:1.5px solid var(--border2);background:var(--surface2);overflow:hidden;}
+.sub-og-box.expanded{border-color:var(--active-color,var(--c-org));}
+.sub-og-header{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;cursor:pointer;gap:8px;}
+.sub-og-header:hover{background:color-mix(in srgb,var(--active-color,var(--c-org)) 5%,white);}
+.sub-og-box.expanded .sub-og-header{background:color-mix(in srgb,var(--active-color,var(--c-org)) 8%,white);border-bottom:1px solid var(--border);}
+.sub-og-left{flex:1;}
+.sub-og-name{font-size:11px;font-weight:700;}
+.sub-og-meta{font-size:9px;color:var(--text2);margin-top:1px;}
+.sub-og-arrow{font-size:10px;color:var(--text3);transition:transform .2s;flex-shrink:0;}
+.sub-og-box.expanded .sub-og-arrow{transform:rotate(180deg);}
+.sub-og-workers{display:none;padding:8px 12px 12px;}
+.sub-og-box.expanded .sub-og-workers{display:block;}
+.sub-og-grid{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;}
+.sub-section-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);margin-bottom:6px;margin-top:10px;padding-left:2px;}
+
+/* WORKER CARD */
+.wkr-card{border:1.5px solid var(--border2);border-radius:8px;padding:8px 10px;background:var(--surface);cursor:pointer;transition:all .2s;min-width:138px;max-width:165px;flex-shrink:0;}
+.wkr-card:hover{border-color:var(--active-color,var(--c-org));box-shadow:0 2px 8px rgba(0,0,0,0.07);}
+.wkr-card.selected{border-color:var(--active-color,var(--c-org));box-shadow:0 0 0 2px color-mix(in srgb,var(--active-color,var(--c-org)) 20%,transparent);}
+.wkr-card.vacant{border-style:dashed;opacity:0.65;}
+.wc-type{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);margin-bottom:2px;}
+.wc-name{font-size:11px;font-weight:700;line-height:1.3;margin-bottom:2px;}
+.wc-role{font-size:9px;color:var(--text2);line-height:1.35;}
+.wc-badge{display:inline-flex;margin-top:4px;padding:1px 6px;border-radius:20px;font-size:8px;font-weight:700;}
+
+/* DIVIDER */
+.divider{width:1px;background:var(--border);flex-shrink:0;}
+
+/* DETAIL PANE */
+.detail-pane{width:340px;flex-shrink:0;display:flex;flex-direction:column;overflow:hidden;background:var(--surface);}
+.detail-scroll{flex:1;overflow-y:auto;padding:20px;}
+.dp-welcome-hero{background:var(--surface2);border-radius:10px;padding:18px;text-align:center;border:1px solid var(--border);margin-bottom:10px;}
+.hw-icon{font-size:32px;margin-bottom:8px;}
+.dp-welcome-hero h2{font-size:14px;font-weight:700;margin-bottom:4px;}
+.dp-welcome-hero p{font-size:11px;color:var(--text2);line-height:1.6;}
+.concept-intro-card{border-radius:9px;padding:14px;border:1.5px solid var(--border);margin-bottom:10px;}
+.cic-label{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-bottom:4px;}
+.cic-title{font-size:13px;font-weight:700;margin-bottom:5px;}
+.cic-body{font-size:11px;color:var(--text2);line-height:1.65;}
+.cic-takeaway{margin-top:10px;padding:8px 10px;border-radius:6px;font-size:10px;font-weight:600;line-height:1.5;}
+.dp-node{display:none;}
+.dp-back{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text2);cursor:pointer;margin-bottom:12px;padding:5px 9px;border-radius:6px;border:1px solid var(--border);width:fit-content;transition:all .15s;}
+.dp-back:hover{background:var(--surface2);}
+.dp-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:20px;font-size:9px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;margin-bottom:8px;}
+.dp-name{font-size:18px;font-weight:700;letter-spacing:-.03em;margin-bottom:3px;line-height:1.2;}
+.dp-analogy{font-size:11px;color:var(--text2);line-height:1.65;padding:8px 10px;background:var(--surface2);border-radius:7px;border-left:3px solid var(--border2);margin-bottom:14px;}
+.dp-section{margin-bottom:14px;}
+.dp-section-title{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-bottom:6px;}
+.data-row{display:flex;justify-content:space-between;align-items:flex-start;padding:5px 0;border-bottom:1px solid var(--border);gap:10px;}
+.data-row:last-child{border-bottom:none;}
+.dr-label{font-size:10px;color:var(--text2);flex-shrink:0;}
+.dr-value{font-size:10px;font-weight:600;text-align:right;line-height:1.4;}
+.dr-value.mono{font-family:var(--mono);font-size:9px;}
+.comp-item{display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:var(--surface2);border-radius:5px;margin-bottom:3px;border:1px solid var(--border);}
+.ci-label{font-size:10px;color:var(--text2);}
+.ci-value{font-size:10px;font-weight:700;font-family:var(--mono);}
+.concept-link{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:7px;border:1.5px solid var(--border);margin-bottom:5px;cursor:pointer;transition:all .15s;}
+.concept-link:hover{border-color:var(--lc);background:color-mix(in srgb,var(--lc) 5%,white);}
+.cl-dot{width:7px;height:7px;border-radius:50%;background:var(--lc);flex-shrink:0;}
+.cl-body{flex:1;}
+.cl-title{font-size:11px;font-weight:600;color:var(--lc);}
+.cl-desc{font-size:9px;color:var(--text2);margin-top:1px;line-height:1.4;}
+
+/* SEC MATRIX */
+.sec-matrix{border:1px solid var(--border);border-radius:7px;overflow:hidden;font-size:9px;}
+.sm-header{display:grid;grid-template-columns:110px repeat(4,1fr);background:var(--surface2);border-bottom:1px solid var(--border);}
+.sm-cell{padding:5px 6px;font-weight:700;text-align:center;border-right:1px solid var(--border);}
+.sm-cell:last-child{border-right:none;}
+.sm-row{display:grid;grid-template-columns:110px repeat(4,1fr);border-bottom:1px solid var(--border);}
+.sm-row:last-child{border-bottom:none;}
+.sm-access{display:flex;align-items:center;justify-content:center;padding:5px;}
+.sm-yes{color:#059669;font-size:12px;}
+.sm-part{color:#D97706;font-size:9px;font-weight:700;}
+.sm-no{color:#DC2626;font-size:12px;}
+
+/* BP */
+.bp-step{display:flex;gap:8px;margin-bottom:8px;}
+.bp-num{width:20px;height:20px;border-radius:50%;background:var(--c-bp);color:#fff;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.bp-title{font-size:11px;font-weight:600;margin-bottom:1px;}
+.bp-desc{font-size:10px;color:var(--text2);line-height:1.5;}
+.bp-warn{background:#FFFBEB;border:1px solid #FDE68A;border-radius:7px;padding:8px 10px;font-size:10px;color:#92400E;line-height:1.55;margin-top:6px;}
+
+/* STF */
+.stf-card{border:1.5px solid var(--border);border-radius:7px;padding:10px;margin-bottom:7px;}
+.stf-card.rec{border-color:var(--c-stf);background:color-mix(in srgb,var(--c-stf) 4%,white);}
+.stf-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;}
+.stf-title{font-size:11px;font-weight:700;}
+.stf-badge{font-size:8px;font-weight:700;padding:2px 7px;border-radius:20px;background:var(--c-stf);color:#fff;}
+.stf-desc{font-size:10px;color:var(--text2);line-height:1.55;}
+
+/* LEGEND */
+.legend-wrap{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:9px;color:var(--text2);}
+.legend-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+
+/* DRAWER */
+.drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:400;display:none;}
+.drawer-overlay.open{display:block;}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:640px;max-width:95vw;background:var(--surface);border-left:1px solid var(--border);z-index:401;display:flex;flex-direction:column;transform:translateX(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);}
+.drawer.open{transform:translateX(0);}
+.drawer-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border);flex-shrink:0;}
+.drawer-title{font-size:15px;font-weight:700;letter-spacing:-.02em;}
+.drawer-close{background:var(--surface2);border:1px solid var(--border);border-radius:6px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;color:var(--text2);}
+.drawer-tabs{display:flex;gap:4px;padding:12px 20px;border-bottom:1px solid var(--border);flex-shrink:0;}
+.dtab{padding:5px 12px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid transparent;color:var(--text2);transition:all .15s;}
+.dtab:hover{background:var(--surface2);}
+.dtab.active{background:var(--surface2);border-color:var(--border2);color:var(--text);}
+.drawer-content{flex:1;overflow-y:auto;padding:16px 20px;}
+.ml-table{width:100%;border-collapse:collapse;font-size:11px;}
+.ml-table th{text-align:left;padding:7px 10px;background:var(--surface2);border-bottom:1px solid var(--border);font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);}
+.ml-table td{padding:7px 10px;border-bottom:1px solid var(--border);vertical-align:top;}
+.ml-table tr:last-child td{border-bottom:none;}
+.ml-table tr:hover td{background:var(--surface2);}
+.ml-mono{font-family:var(--mono);font-size:9px;color:var(--text2);}
+.ml-badge{display:inline-flex;padding:1px 7px;border-radius:20px;font-size:8px;font-weight:700;}
+.ml-section{margin-bottom:20px;}
+.ml-section-title{font-size:11px;font-weight:700;padding:8px 10px;background:var(--surface2);border-radius:6px;margin-bottom:8px;border:1px solid var(--border);}
+
+/* BREADCRUMB */
+.breadcrumb{display:none;align-items:center;gap:5px;font-size:10px;color:var(--text2);padding:6px 20px;background:var(--surface2);border-bottom:1px solid var(--border);flex-shrink:0;}
+.bc-link{cursor:pointer;}
+.bc-link:hover{color:var(--text);}
+.bc-sep{color:var(--text3);}
+.bc-cur{font-weight:600;color:var(--text);}
+
+/* STORY */
+.story-overlay{position:fixed;inset:0;background:rgba(26,24,20,0.65);z-index:500;display:none;align-items:center;justify-content:center;backdrop-filter:blur(6px);}
+.story-card{background:var(--surface);border-radius:18px;padding:32px 36px;width:480px;max-width:92vw;box-shadow:0 32px 80px rgba(0,0,0,0.2);animation:popIn .32s cubic-bezier(.34,1.56,.64,1);}
+@keyframes popIn{from{opacity:0;transform:scale(.92) translateY(14px);}to{opacity:1;transform:scale(1) translateY(0);}}
+.sc-step{font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:6px;}
+.sc-icon{font-size:36px;display:block;margin-bottom:12px;}
+.sc-title{font-size:20px;font-weight:700;letter-spacing:-.03em;margin-bottom:8px;line-height:1.2;}
+.sc-body{font-size:12px;color:var(--text2);line-height:1.75;margin-bottom:16px;}
+.sc-body strong{color:var(--text);}
+.sc-hl{background:var(--surface2);border-left:3px solid var(--c-org);border-radius:0 7px 7px 0;padding:8px 12px;font-size:11px;color:var(--text2);margin-bottom:16px;line-height:1.6;}
+.sc-footer{display:flex;align-items:center;justify-content:space-between;}
+.sc-dots{display:flex;gap:4px;}
+.sc-dot{width:5px;height:5px;border-radius:50%;background:var(--border2);transition:all .2s;}
+.sc-dot.active{width:16px;border-radius:2px;background:var(--c-org);}
+.sc-actions{display:flex;gap:6px;align-items:center;}
+.btn{padding:6px 14px;border-radius:7px;font-family:var(--font);font-size:11px;font-weight:600;cursor:pointer;border:none;transition:all .15s;}
+.btn-outline{background:transparent;border:1px solid var(--border2);color:var(--text2);}
+.btn-outline:hover{background:var(--surface2);}
+.btn-dark{background:var(--text);color:#fff;}
+.btn-dark:hover{background:#333;}
+.btn-dim{background:none;border:none;color:var(--text3);font-size:10px;cursor:pointer;padding:4px 6px;font-family:var(--font);}
+</style>
+</head>
+<body>
+
+<script src="../assets/nav.js"></script>
+
+<!-- CONCEPT TABS -->
+<div class="concept-bar">
+  <div class="ctab active" data-c="org"  onclick="switchConcept('org')"><div class="ctab-dot"></div>Supervisory Org</div>
+  <div class="ctab"        data-c="stf"  onclick="switchConcept('stf')"><div class="ctab-dot"></div>Staffing Model</div>
+  <div class="ctab"        data-c="jp"   onclick="switchConcept('jp')"><div class="ctab-dot"></div>Job Profile</div>
+  <div class="ctab"        data-c="comp" onclick="switchConcept('comp')"><div class="ctab-dot"></div>Compensation</div>
+  <div class="ctab"        data-c="sec"  onclick="switchConcept('sec')"><div class="ctab-dot"></div>Security</div>
+  <div class="ctab"        data-c="bp"   onclick="switchConcept('bp')"><div class="ctab-dot"></div>Business Process</div>
+</div>
+
+<!-- ORG TYPE SWITCHER -->
+<div id="org-type-bar" class="org-type-bar">
+  <span class="ot-label">View by:</span>
+  <div class="otab active" data-ot="sup"     onclick="switchOrgType('sup')">🏢 Supervisory Org</div>
+  <div class="otab"        data-ot="company" onclick="switchOrgType('company')">🏛️ Company</div>
+  <div class="otab"        data-ot="cc"      onclick="switchOrgType('cc')">🏦 Cost Center</div>
+  <div class="otab"        data-ot="loc"     onclick="switchOrgType('loc')">📍 Location</div>
+  <div class="otab"        data-ot="custom"  onclick="switchOrgType('custom')">⚙️ Custom Org</div>
+</div>
+<div class="ot-teach" id="ot-teach"></div>
+
+<!-- BREADCRUMB -->
+<div class="breadcrumb" id="breadcrumb">
+  <span class="bc-link" onclick="hideDetail()">🏠 Overview</span>
+  <span class="bc-sep">›</span>
+  <span class="bc-cur" id="bc-cur"></span>
+</div>
+
+<!-- BODY -->
+<div class="body-wrap">
+  <div class="chart-pane">
+    <div class="chart-header">
+      <div class="chart-title" id="chart-title">Vina Company — Supervisory Org View</div>
+      <div class="chart-sub"  id="chart-sub">Click any group to expand and see its members</div>
+    </div>
+    <div class="chart-scroll"><div class="oc-wrap" id="oc-wrap"></div></div>
+  </div>
+  <div class="divider"></div>
+  <div class="detail-pane">
+    <div class="detail-scroll" id="detail-scroll">
+      <div id="dp-welcome">
+        <div class="dp-welcome-hero">
+          <div class="hw-icon">🏭</div>
+          <h2>Vina Company</h2>
+          <p>Vietnamese FMCG manufacturer · HCMC · Hà Nội · Bình Dương · 51 employees · 6 departments</p>
+        </div>
+        <div id="concept-intro-area"></div>
+      </div>
+      <div id="dp-node" class="dp-node"></div>
+    </div>
+  </div>
+</div>
+
+<!-- DRAWER -->
+<div class="drawer-overlay" id="drawer-overlay" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-header">
+    <div class="drawer-title">📋 Reference Data — Vina Company</div>
+    <div class="drawer-close" onclick="closeDrawer()">✕</div>
+  </div>
+  <div class="drawer-tabs">
+    <div class="dtab active" data-dt="loc" onclick="switchDrawerTab('loc')">📍 Locations</div>
+    <div class="dtab" data-dt="cc" onclick="switchDrawerTab('cc')">🏦 Cost Centers</div>
+    <div class="dtab" data-dt="jp" onclick="switchDrawerTab('jp')">📄 Job Profiles</div>
+  </div>
+  <div class="drawer-content" id="drawer-content"></div>
+</div>
+
+<!-- STORY -->
+<div class="story-overlay" id="story-overlay" style="display:none;">
+  <div class="story-card" id="story-card"></div>
+</div>
+
+<!-- TOP-RIGHT ACTIONS (injected after nav) -->
+<script>
+// Inject action buttons into nav right side
+document.addEventListener('DOMContentLoaded', () => {
+  const nav = document.getElementById('hub-nav');
+  if (nav) {
+    const actions = document.createElement('div');
+    actions.style.cssText = 'display:flex;gap:6px;margin-left:12px;';
+    actions.innerHTML = `
+      <button class="hub-btn hub-btn-ghost" onclick="openDrawer()">📋 Reference Data</button>
+      <button class="hub-btn hub-btn-ghost" onclick="startStory()">▶ Tour</button>
+      <button class="hub-btn hub-btn-ghost" onclick="resetAll()">Reset</button>`;
+    nav.appendChild(actions);
+  }
+});
+</script>
+
+<script>
+// ═══════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════
+let currentConcept = 'org';
+let currentOrgType = 'sup';
+let expandedGroupId = null;
+let expandedSubGroupId = null;
+let selectedWkrId = null;
+let drawerTab = 'loc';
+
+// ═══════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════
+function fmtVND(n){if(n===null||n===undefined)return'—';return n.toLocaleString('vi-VN')+'₫';}
+function fmtUSD(n){if(n===null||n===undefined)return'—';return'$'+n.toLocaleString();}
+function fmt(n,c){return c==='USD'?fmtUSD(n):fmtVND(n);}
+function fmtDate(d){if(!d)return'—';const[y,m,day]=d.split('-');return`${day}/${m}/${y}`;}
+function gradeColor(g){return(COMP_GRADES[g]||{}).color||'#888';}
+function secColor(r){return(SEC_ROLES[r]||{}).color||'#888';}
+function jfColor(g){return JFG_COLORS[g]||'#888';}
+function locName(id){return(LOCATIONS.find(l=>l.id===id)||{}).name||id;}
+function orgName(id){return(ORGS.find(o=>o.id===id)||{}).name||id;}
+function activeColor(){return CONCEPTS[currentConcept]?.activeColor||'#1D4ED8';}
+
+// ═══════════════════════════════════════════════════
+// GROUPS
+// ═══════════════════════════════════════════════════
+function getGroups(type){
+  if(type==='sup'){
+    return ORGS.filter(o=>o.level===0||o.level===1).map(o=>{
+      const direct=WORKERS.filter(w=>w.org===o.id);
+      const subs=ORGS.filter(s=>s.parent===o.id);
+      return{id:o.id,icon:'🏢',label:'Supervisory Org',name:o.name,
+        meta:`Manager: ${o.manager} · ${locName(o.loc)}`,
+        badgeText:`${direct.filter(w=>!w.vacant).length} filled · ${direct.filter(w=>w.vacant).length} vacant${subs.length?` · ${subs.length} sub-teams`:''}`,
+        badgeColor:'#1D4ED8',workers:direct,
+        subGroups:subs.map(s=>({id:s.id,name:`🏢 ${s.name}`,meta:`Manager: ${s.manager}`,
+          badge:`${WORKERS.filter(w=>w.org===s.id&&!w.vacant).length} filled · ${WORKERS.filter(w=>w.org===s.id&&w.vacant).length} vacant`,
+          workers:WORKERS.filter(w=>w.org===s.id)}))};
+    });
+  }
+  if(type==='company'){
+    return[{id:'vina-ltd',icon:'🏛️',label:'Legal Entity',name:'Vina Company Ltd.',
+      meta:'Vietnam · All departments',
+      badgeText:`${WORKERS.filter(w=>!w.vacant).length} employees · ${WORKERS.filter(w=>w.vacant).length} vacant`,
+      badgeColor:'#7C3AED',workers:WORKERS,subGroups:[]}];
+  }
+  if(type==='cc'){
+    const hiers=['Corporate','Commercial','Manufacturing'];
+    const colors={'Corporate':'#7C3AED','Commercial':'#059669','Manufacturing':'#D97706'};
+    return hiers.map(h=>{
+      const ccs=COST_CENTERS.filter(c=>c.hier===h);
+      const allWkrs=WORKERS.filter(w=>ccs.some(c=>c.id===w.cc));
+      return{id:'hier-'+h.toLowerCase(),icon:'🏦',label:'Cost Center Hierarchy',name:h,
+        meta:`${ccs.length} cost centers`,
+        badgeText:`${allWkrs.filter(w=>!w.vacant).length} employees`,
+        badgeColor:colors[h],workers:[],
+        subGroups:ccs.map(cc=>{
+          const wkrs=WORKERS.filter(w=>w.cc===cc.id);
+          return{id:cc.id,name:`🏦 ${cc.name}`,meta:`${cc.id} · ${cc.currency}`,
+            badge:`${wkrs.filter(w=>!w.vacant).length} filled · ${wkrs.filter(w=>w.vacant).length} vacant`,
+            workers:wkrs};
+        })};
+    });
+  }
+  if(type==='loc'){
+    return LOCATIONS.map(l=>{
+      const wkrs=WORKERS.filter(w=>w.loc===l.id);
+      return{id:l.id,icon:'📍',label:`Location · ${l.hier}`,name:l.name,
+        meta:`${l.country} · ${l.tz} · Hierarchy: ${l.hier}`,
+        badgeText:`${wkrs.filter(w=>!w.vacant).length} employees`,
+        badgeColor:'#0891B2',workers:wkrs,subGroups:[]};
+    });
+  }
+  if(type==='custom'){
+    return[
+      {id:'blue',icon:'🔵',label:'Custom Org',name:'Blue Collar',
+        meta:'Production & Warehouse · Shift workers',
+        badgeText:`${WORKERS.filter(w=>w.collar==='blue'&&!w.vacant).length} members · ${WORKERS.filter(w=>w.collar==='blue'&&w.vacant).length} vacant`,
+        badgeColor:'#0891B2',workers:WORKERS.filter(w=>w.collar==='blue'),subGroups:[]},
+      {id:'white',icon:'⚪',label:'Custom Org',name:'White Collar',
+        meta:'Office-based · Salaried',
+        badgeText:`${WORKERS.filter(w=>w.collar==='white'&&!w.vacant).length} members · ${WORKERS.filter(w=>w.collar==='white'&&w.vacant).length} vacant`,
+        badgeColor:'#6B6660',workers:WORKERS.filter(w=>w.collar==='white'),subGroups:[]},
+    ];
+  }
+  return[];
+}
+
+// ═══════════════════════════════════════════════════
+// BUILD CHART
+// ═══════════════════════════════════════════════════
+function buildChart(){
+  const wrap=document.getElementById('oc-wrap');
+  wrap.innerHTML='';
+  const ac=activeColor();
+  wrap.style.setProperty('--active-color',ac);
+  getGroups(currentOrgType).forEach(g=>wrap.appendChild(makeGroupBox(g,ac)));
+}
+
+function makeGroupBox(g,ac){
+  const isExp=expandedGroupId===g.id;
+  const box=document.createElement('div');
+  box.className='og-box'+(isExp?' expanded':'');
+  box.id='ogbox-'+g.id;
+  box.style.setProperty('--active-color',ac);
+  const hdr=document.createElement('div');
+  hdr.className='og-header';
+  hdr.innerHTML=`
+    <div class="og-left">
+      <div class="og-icon" style="background:color-mix(in srgb,${g.badgeColor} 12%,white);">${g.icon}</div>
+      <div class="og-info">
+        <div class="og-type">${g.label}</div>
+        <div class="og-name">${g.name}</div>
+        <div class="og-meta">${g.meta}</div>
+      </div>
+    </div>
+    <div class="og-right">
+      <span class="og-badge" style="background:color-mix(in srgb,${g.badgeColor} 12%,white);color:${g.badgeColor};">${g.badgeText}</span>
+      <span class="og-arrow">▾</span>
+    </div>`;
+  hdr.addEventListener('click',()=>toggleGroup(g.id));
+  box.appendChild(hdr);
+  const body=document.createElement('div');
+  body.className='og-workers';
+  if(g.workers.length>0){
+    const grid=document.createElement('div');
+    grid.className='og-workers-grid';
+    g.workers.forEach(w=>grid.appendChild(makeWorkerCard(w,ac)));
+    body.appendChild(grid);
+  }
+  if(g.subGroups&&g.subGroups.length>0){
+    const lbl=document.createElement('div');
+    lbl.className='sub-section-label';
+    lbl.textContent=currentOrgType==='sup'?`Sub-teams (${g.subGroups.length})`:`Cost Centers (${g.subGroups.length})`;
+    body.appendChild(lbl);
+    g.subGroups.forEach(s=>body.appendChild(makeSubGroupBox(s,ac)));
+  }
+  box.appendChild(body);
+  return box;
+}
+
+function makeSubGroupBox(s,ac){
+  const isExp=expandedSubGroupId===s.id;
+  const box=document.createElement('div');
+  box.className='sub-og-box'+(isExp?' expanded':'');
+  box.id='subogbox-'+s.id;
+  box.style.setProperty('--active-color',ac);
+  const hdr=document.createElement('div');
+  hdr.className='sub-og-header';
+  hdr.innerHTML=`
+    <div class="sub-og-left">
+      <div class="sub-og-name">${s.name}</div>
+      <div class="sub-og-meta">${s.meta} · ${s.badge}</div>
+    </div>
+    <span class="sub-og-arrow">▾</span>`;
+  hdr.addEventListener('click',e=>{e.stopPropagation();toggleSubGroup(s.id);});
+  box.appendChild(hdr);
+  const body=document.createElement('div');
+  body.className='sub-og-workers';
+  const grid=document.createElement('div');
+  grid.className='sub-og-grid';
+  s.workers.forEach(w=>grid.appendChild(makeWorkerCard(w,ac)));
+  body.appendChild(grid);
+  box.appendChild(body);
+  return box;
+}
+
+function makeWorkerCard(w,ac){
+  const jp=JOB_PROFILES[w.jp]||{};
+  const card=document.createElement('div');
+  card.className='wkr-card'+(w.vacant?' vacant':'')+(selectedWkrId===w.id?' selected':'');
+  card.id='wcard-'+w.id;
+  card.style.setProperty('--active-color',ac||activeColor());
+  let badge='';
+  const c=currentConcept;
+  if(c==='stf')       badge=w.vacant?`<span class="wc-badge" style="background:#f5f5f5;color:#888;">Vacant</span>`:`<span class="wc-badge" style="background:#ECFDF5;color:#059669;">Filled</span>`;
+  else if(c==='jp')   badge=`<span class="wc-badge" style="background:${jfColor(jp.group)}18;color:${jfColor(jp.group)};">${jp.group||'—'}</span>`;
+  else if(c==='comp') badge=`<span class="wc-badge" style="background:${gradeColor(w.grade)}18;color:${gradeColor(w.grade)};">${w.grade}</span>`;
+  else if(c==='sec'&&!w.vacant) badge=`<span class="wc-badge" style="background:${secColor(w.sec)}18;color:${secColor(w.sec)};">${w.sec||'—'}</span>`;
+  else                badge=`<span class="wc-badge" style="background:${gradeColor(w.grade)}18;color:${gradeColor(w.grade)};">${w.grade}</span>`;
+  const subLine=c==='jp'
+    ?`<div class="wc-role" style="color:${jfColor(jp.group)};font-weight:600;">${jp.name||w.posTitle}</div>`
+    :`<div class="wc-role">${w.posTitle}</div>`;
+  card.innerHTML=`
+    <div class="wc-type">${w.vacant?'Vacant Position':'Worker'}</div>
+    <div class="wc-name" style="color:${w.vacant?'var(--text3)':'var(--text)'};">${w.vacant?w.posTitle:w.name}</div>
+    ${subLine}${badge}`;
+  card.addEventListener('click',e=>{e.stopPropagation();selectWorker(w.id);});
+  return card;
+}
+
+// ═══════════════════════════════════════════════════
+// TOGGLE
+// ═══════════════════════════════════════════════════
+function toggleGroup(id){
+  expandedGroupId=expandedGroupId===id?null:id;
+  expandedSubGroupId=null;selectedWkrId=null;
+  hideDetail();buildChart();
+}
+function toggleSubGroup(id){
+  expandedSubGroupId=expandedSubGroupId===id?null:id;
+  selectedWkrId=null;hideDetail();buildChart();
+}
+
+// ═══════════════════════════════════════════════════
+// WORKER SELECTION
+// ═══════════════════════════════════════════════════
+function selectWorker(id){
+  selectedWkrId=id;
+  document.querySelectorAll('.wkr-card').forEach(c=>c.classList.remove('selected'));
+  const card=document.getElementById('wcard-'+id);
+  if(card)card.classList.add('selected');
+  const w=WORKERS.find(x=>x.id===id);
+  document.getElementById('bc-cur').textContent=w.vacant?w.posTitle:w.name;
+  document.getElementById('breadcrumb').style.display='flex';
+  document.getElementById('dp-welcome').style.display='none';
+  document.getElementById('dp-node').style.display='block';
+  renderWorkerDetail(w);
+}
+
+function hideDetail(){
+  document.getElementById('breadcrumb').style.display='none';
+  document.getElementById('dp-welcome').style.display='';
+  document.getElementById('dp-node').style.display='none';
+  renderConceptIntro();
+}
+
+// ═══════════════════════════════════════════════════
+// WORKER DETAIL
+// ═══════════════════════════════════════════════════
+function renderWorkerDetail(w){
+  const concept=CONCEPTS[currentConcept];
+  const jp=JOB_PROFILES[w.jp]||{};
+  const grade=COMP_GRADES[w.grade]||{};
+  const secRole=SEC_ROLES[w.sec]||{};
+  const jfc=jfColor(jp.group);
+  document.getElementById('dp-node').innerHTML=`
+    <div class="dp-back" onclick="hideDetail()">← Back</div>
+    <div class="dp-badge" style="background:${w.vacant?'#f5f5f5':concept.bg};color:${w.vacant?'#888':concept.color};">
+      ${w.vacant?'⬜ Vacant Position':'👤 Worker'}
+    </div>
+    <div class="dp-name">${w.vacant?w.posTitle:w.name}</div>
+    <div class="dp-analogy">${w.vacant
+      ?'This position is <strong>open and unfilled</strong>. The chair exists in Workday — visible for headcount planning.'
+      :'The Worker record says <strong>who this person is</strong>. Their Position links them to org, role, and location.'
+    }</div>
+    ${!w.vacant?`
+    <div class="dp-section">
+      <div class="dp-section-title">Personal & Employment</div>
+      <div class="data-row"><span class="dr-label">Worker ID</span><span class="dr-value mono">${w.id}</span></div>
+      <div class="data-row"><span class="dr-label">Full Name</span><span class="dr-value">${w.name}</span></div>
+      <div class="data-row"><span class="dr-label">Hire Date</span><span class="dr-value">${fmtDate(w.hire)}</span></div>
+      <div class="data-row"><span class="dr-label">Worker Type</span><span class="dr-value">${w.expat?'Employee (Expat)':'Employee'}</span></div>
+      <div class="data-row"><span class="dr-label">Hours/Week</span><span class="dr-value">${w.hrs} hrs</span></div>
+      <div class="data-row"><span class="dr-label">Collar</span><span class="dr-value">${w.collar==='blue'?'🔵 Blue Collar':'⚪ White Collar'}</span></div>
+    </div>`:''}
+    <div class="dp-section">
+      <div class="dp-section-title">Position</div>
+      <div class="data-row"><span class="dr-label">Position ID</span><span class="dr-value mono">${w.pos}</span></div>
+      <div class="data-row"><span class="dr-label">Title</span><span class="dr-value">${w.posTitle}</span></div>
+      <div class="data-row"><span class="dr-label">Supervisory Org</span><span class="dr-value">${orgName(w.org)}</span></div>
+      <div class="data-row"><span class="dr-label">Location</span><span class="dr-value">${locName(w.loc)}</span></div>
+      <div class="data-row"><span class="dr-label">Cost Center</span><span class="dr-value mono">${w.cc}</span></div>
+    </div>
+    <div class="dp-section">
+      <div class="dp-section-title">Job Profile — <span style="color:var(--c-jp);cursor:pointer;font-weight:normal;" onclick="switchConceptKeepWorker('jp')">view concept →</span></div>
+      <div class="data-row"><span class="dr-label">Profile ID</span><span class="dr-value mono">${w.jp}</span></div>
+      <div class="data-row"><span class="dr-label">Profile Name</span><span class="dr-value">${jp.name||'—'}</span></div>
+      <div class="data-row"><span class="dr-label">Job Family Group</span><span class="dr-value" style="color:${jfc};font-weight:700;">${jp.group||'—'}</span></div>
+      <div class="data-row"><span class="dr-label">Job Family</span><span class="dr-value">${jp.family||'—'}</span></div>
+      <div class="data-row"><span class="dr-label">Level</span><span class="dr-value">${jp.level||'—'}</span></div>
+      <div class="data-row"><span class="dr-label">Comp Grade</span><span class="dr-value" style="color:${gradeColor(w.grade)};font-weight:700;">${w.grade}</span></div>
+    </div>
+    ${!w.vacant?`
+    <div class="dp-section">
+      <div class="dp-section-title">Compensation — <span style="color:var(--c-comp);cursor:pointer;font-weight:normal;" onclick="switchConceptKeepWorker('comp')">view concept →</span></div>
+      <div class="comp-item"><span class="ci-label">Base Salary / month</span><span class="ci-value">${fmt(w.base,w.cur)}</span></div>
+      <div class="comp-item"><span class="ci-label">Tháng 13 (= 1 month base)</span><span class="ci-value">${fmt(w.base,w.cur)}</span></div>
+      <div class="comp-item"><span class="ci-label">BHXH (Social Insurance)</span><span class="ci-value">${fmt(w.bhxh,w.cur)}</span></div>
+      <div class="comp-item"><span class="ci-label">Phụ cấp (Allowances)</span><span class="ci-value">${fmt(w.phuCap,w.cur)}</span></div>
+      <div class="comp-item"><span class="ci-label">Annual Performance Bonus</span><span class="ci-value">${fmt(w.bonus,w.cur)}</span></div>
+      <div class="comp-item" style="margin-top:2px;">
+        <span class="ci-label" style="font-weight:700;">Comp Grade</span>
+        <span class="ci-value" style="color:${gradeColor(w.grade)};">${grade.label||w.grade}</span>
+      </div>
+      <div style="font-size:9px;color:var(--text2);padding:5px 8px;background:var(--surface2);border-radius:5px;margin-top:2px;">
+        Band: ${w.cur==='USD'?fmtUSD(grade.min_usd)+' — '+fmtUSD(grade.max_usd):fmtVND(grade.min_vnd)+' — '+fmtVND(grade.max_vnd)}
+      </div>
+    </div>
+    <div class="dp-section">
+      <div class="dp-section-title">Security — <span style="color:var(--c-sec);cursor:pointer;font-weight:normal;" onclick="switchConceptKeepWorker('sec')">view concept →</span></div>
+      <div class="data-row"><span class="dr-label">Security Role</span><span class="dr-value" style="color:${secColor(w.sec)};font-weight:700;">${w.sec||'—'}</span></div>
+      <div class="data-row"><span class="dr-label">Org Scope</span><span class="dr-value">${orgName(w.org)}</span></div>
+    </div>`:''}
+    ${renderConceptLinks(CONCEPTS[currentConcept])}`;
+}
+
+function renderConceptLinks(concept){
+  if(!concept.links||!concept.links.length)return'';
+  return`<div class="dp-section">
+    <div class="dp-section-title">Explore related concepts</div>
+    ${concept.links.map(l=>`
+      <div class="concept-link" style="--lc:${CONCEPTS[l.c].color};" onclick="switchConceptKeepWorker('${l.c}')">
+        <div class="cl-dot"></div>
+        <div class="cl-body"><div class="cl-title">${CONCEPTS[l.c].label}</div><div class="cl-desc">${l.desc}</div></div>
+        <span style="font-size:11px;color:var(--text3);">→</span>
+      </div>`).join('')}
+  </div>`;
+}
+
+// ═══════════════════════════════════════════════════
+// CONCEPT SWITCHING
+// ═══════════════════════════════════════════════════
+function switchConcept(c){
+  currentConcept=c;
+  document.querySelectorAll('.ctab').forEach(t=>t.classList.toggle('active',t.dataset.c===c));
+  const showSwitcher=(c==='org'||c==='jp'||c==='comp'||c==='bp');
+  const snapToSup=(c==='stf'||c==='sec');
+  document.getElementById('org-type-bar').style.display=showSwitcher?'flex':'none';
+  document.getElementById('ot-teach').style.display=showSwitcher?'block':'none';
+  if(snapToSup){
+    currentOrgType='sup';
+    document.querySelectorAll('.otab').forEach(o=>o.classList.toggle('active',o.dataset.ot==='sup'));
+  }
+  const concept=CONCEPTS[c];
+  const teach=ORG_TYPE_TEACH[currentOrgType];
+  document.getElementById('chart-title').textContent=
+    snapToSup?'Vina Company — Supervisory Org View':
+    showSwitcher?`Vina Company — ${teach?.title||'Organisation'} View`:
+    `${concept.label} — Vina Company`;
+  document.getElementById('chart-sub').textContent=
+    c==='bp'?'Concept overview in the panel — no org view for Business Process':
+    'Click any group to expand and see its members';
+  expandedGroupId=null;expandedSubGroupId=null;
+  buildChart();
+  if(selectedWkrId){
+    const w=WORKERS.find(x=>x.id===selectedWkrId);
+    if(w){document.getElementById('dp-welcome').style.display='none';document.getElementById('dp-node').style.display='block';document.getElementById('breadcrumb').style.display='flex';renderWorkerDetail(w);}
+  } else renderConceptIntro();
+}
+
+function switchOrgType(t){
+  currentOrgType=t;
+  expandedGroupId=null;expandedSubGroupId=null;selectedWkrId=null;
+  document.querySelectorAll('.otab').forEach(o=>o.classList.toggle('active',o.dataset.ot===t));
+  const teach=ORG_TYPE_TEACH[t];
+  const el=document.getElementById('ot-teach');
+  el.innerHTML=`<strong>${teach.title}:</strong> ${teach.msg}`;
+  el.classList.add('show');
+  document.getElementById('chart-title').textContent=`Vina Company — ${teach.title} View`;
+  hideDetail();buildChart();
+}
+
+function switchConceptKeepWorker(c){
+  const prevId=selectedWkrId;
+  switchConcept(c);
+  if(prevId){selectedWkrId=prevId;const w=WORKERS.find(x=>x.id===prevId);if(w){document.getElementById('dp-welcome').style.display='none';document.getElementById('dp-node').style.display='block';document.getElementById('breadcrumb').style.display='flex';document.getElementById('bc-cur').textContent=w.vacant?w.posTitle:w.name;renderWorkerDetail(w);}}
+}
+
+function resetAll(){
+  expandedGroupId=null;expandedSubGroupId=null;selectedWkrId=null;
+  buildChart();hideDetail();
+}
+
+// ═══════════════════════════════════════════════════
+// CONCEPT INTRO
+// ═══════════════════════════════════════════════════
+function renderConceptIntro(){
+  const c=CONCEPTS[currentConcept];
+  let extra='';
+  if(currentConcept==='org')  extra=renderOrgTypeSummary();
+  if(currentConcept==='stf')  extra=renderStfCards();
+  if(currentConcept==='jp')   extra=renderJPLegend();
+  if(currentConcept==='comp') extra=renderCompLegend();
+  if(currentConcept==='sec')  extra=renderSecMatrix();
+  if(currentConcept==='bp')   extra=renderBPSteps();
+  document.getElementById('concept-intro-area').innerHTML=`
+    <div class="concept-intro-card" style="border-color:color-mix(in srgb,${c.color} 30%,var(--border));background:${c.bg};">
+      <div class="cic-label">Current concept</div>
+      <div class="cic-title" style="color:${c.color};">${c.label}</div>
+      <div class="cic-body">${c.intro}</div>
+      <div class="cic-takeaway" style="background:color-mix(in srgb,${c.color} 10%,white);color:${c.color};">${c.takeaway}</div>
+    </div>${extra}`;
+}
+
+function renderOrgTypeSummary(){
+  return`<div class="dp-section" style="margin-top:10px;"><div class="dp-section-title">5 ways to group people in Workday</div>
+    ${[{icon:'🏢',n:'Supervisory Org',d:'Who do you report to?'},{icon:'🏛️',n:'Company',d:'Who employs you legally?'},
+       {icon:'🏦',n:'Cost Center',d:'Which budget pays for you?'},{icon:'📍',n:'Location',d:'Where do you physically work?'},
+       {icon:'⚙️',n:'Custom Org',d:'How else does your company group people?'}]
+    .map(r=>`<div class="comp-item"><span class="ci-label">${r.icon} ${r.n}</span><span style="font-size:9px;color:var(--text2);">${r.d}</span></div>`).join('')}
+  </div>`;
+}
+function renderStfCards(){
+  return`<div class="dp-section" style="margin-top:10px;"><div class="dp-section-title">Choose your Staffing Model</div>
+    <div class="stf-card rec"><div class="stf-header"><div class="stf-title">Position Management</div><div class="stf-badge">✓ Recommended</div></div><div class="stf-desc">Every seat is a defined Position. Workers hired into positions. Vacancies visible.</div></div>
+    <div class="stf-card"><div class="stf-header"><div class="stf-title">Job Management</div></div><div class="stf-desc">Workers hired into Jobs directly. Simpler but no vacancy tracking. Not recommended for manufacturing.</div></div>
+  </div>`;
+}
+function renderJPLegend(){
+  return`<div class="dp-section" style="margin-top:10px;"><div class="dp-section-title">Job Family Groups</div>
+    <div class="legend-wrap">${Object.entries(JFG_COLORS).map(([g,c])=>`<div class="legend-item"><div class="legend-dot" style="background:${c};"></div>${g}</div>`).join('')}</div>
+  </div>`;
+}
+function renderCompLegend(){
+  return`<div class="dp-section" style="margin-top:10px;"><div class="dp-section-title">Compensation Grades</div>
+    ${Object.entries(COMP_GRADES).map(([g,d])=>`<div class="comp-item"><span class="ci-label" style="color:${d.color};font-weight:700;">${g}</span>
+      <span style="font-size:9px;color:var(--text2);">${d.label.split('—')[1]?.trim()||''} · ${d.min_usd?'$'+d.min_usd.toLocaleString()+' – $'+d.max_usd.toLocaleString():fmtVND(d.min_vnd)+' – '+fmtVND(d.max_vnd)}</span></div>`).join('')}
+  </div>`;
+}
+function renderSecMatrix(){
+  return`<div class="dp-section" style="margin-top:10px;"><div class="dp-section-title">Security Role Matrix</div>
+    <div class="sec-matrix">
+      <div class="sm-header"><div class="sm-cell" style="text-align:left;">Action</div><div class="sm-cell" style="color:#DC2626;">Admin</div><div class="sm-cell" style="color:#1D4ED8;">HR Partner</div><div class="sm-cell" style="color:#059669;">Manager</div><div class="sm-cell" style="color:#6B6660;">Employee</div></div>
+      ${[['View own profile','✓','✓','✓','✓'],['View team data','✓','✓','✓','✗'],['View all comp','✓','✓','✗','✗'],
+         ['Edit worker data','✓','✓','~','✗'],['Approve hire','✓','✓','~','✗'],['Run org reports','✓','✓','~','✗'],['Configure setup','✓','✗','✗','✗']]
+        .map(([a,ad,hr,mg,em])=>`<div class="sm-row"><div class="sm-cell" style="text-align:left;">${a}</div>
+          <div class="sm-access"><span class="${ad==='✓'?'sm-yes':ad==='~'?'sm-part':'sm-no'}">${ad}</span></div>
+          <div class="sm-access"><span class="${hr==='✓'?'sm-yes':hr==='~'?'sm-part':'sm-no'}">${hr}</span></div>
+          <div class="sm-access"><span class="${mg==='✓'?'sm-yes':mg==='~'?'sm-part':'sm-no'}">${mg}</span></div>
+          <div class="sm-access"><span class="${em==='✓'?'sm-yes':em==='~'?'sm-part':'sm-no'}">${em}</span></div></div>`).join('')}
+    </div><div style="font-size:9px;color:var(--text3);margin-top:4px;">~ = Own team/data only</div>
+  </div>`;
+}
+function renderBPSteps(){
+  return`<div class="dp-section" style="margin-top:10px;"><div class="dp-section-title">Hire Approval — Streamlined (Recommended)</div>
+    ${[['HR Partner initiates','Lê Thị Mai creates the hire request.'],['Department Head approves','e.g. Nguyễn Thị Hoa for Sales roles.'],['Worker hired','Position is filled, worker record created.']]
+      .map(([t,d],i)=>`<div class="bp-step"><div class="bp-num">${i+1}</div><div><div class="bp-title">${t}</div><div class="bp-desc">${d}</div></div></div>`).join('')}
+    <div class="bp-warn">⚠️ Avoid 4–5 approvers. <strong>Max 2 approvers</strong> per process recommended.</div>
+  </div>`;
+}
+
+// ═══════════════════════════════════════════════════
+// DRAWER
+// ═══════════════════════════════════════════════════
+function openDrawer(){document.getElementById('drawer-overlay').classList.add('open');document.getElementById('drawer').classList.add('open');renderDrawerContent();}
+function closeDrawer(){document.getElementById('drawer-overlay').classList.remove('open');document.getElementById('drawer').classList.remove('open');}
+function switchDrawerTab(t){drawerTab=t;document.querySelectorAll('.dtab').forEach(d=>d.classList.toggle('active',d.dataset.dt===t));renderDrawerContent();}
+function renderDrawerContent(){
+  const el=document.getElementById('drawer-content');
+  if(drawerTab==='loc')el.innerHTML=`<div class="ml-section"><div class="ml-section-title">📍 Locations — Hierarchy: Vietnam</div>
+    <table class="ml-table"><thead><tr><th>Location ID</th><th>Name</th><th>Country</th><th>Timezone</th><th>Hierarchy</th></tr></thead>
+    <tbody>${LOCATIONS.map(l=>`<tr><td class="ml-mono">${l.id}</td><td style="font-weight:600;">${l.name}</td><td>${l.country}</td><td class="ml-mono">${l.tz}</td>
+      <td><span class="ml-badge" style="background:#EFF6FF;color:#1D4ED8;">${l.hier}</span></td></tr>`).join('')}</tbody></table></div>`;
+  else if(drawerTab==='cc'){
+    const hiers=['Corporate','Commercial','Manufacturing'];
+    const colors={'Corporate':'#7C3AED','Commercial':'#059669','Manufacturing':'#D97706'};
+    el.innerHTML=hiers.map(h=>`<div class="ml-section"><div class="ml-section-title" style="color:${colors[h]};">🏦 ${h} Hierarchy</div>
+      <table class="ml-table"><thead><tr><th>Cost Center ID</th><th>Name</th><th>Hierarchy</th><th>Currency</th></tr></thead>
+      <tbody>${COST_CENTERS.filter(c=>c.hier===h).map(c=>`<tr><td class="ml-mono">${c.id}</td><td style="font-weight:600;">${c.name}</td>
+        <td style="font-size:9px;color:${colors[h]};">› ${c.hier}</td><td class="ml-mono">${c.currency}</td></tr>`).join('')}</tbody></table></div>`).join('');
+  } else {
+    const groups=['Management','Corporate Functions','Commercial','Manufacturing'];
+    el.innerHTML=groups.map(g=>{
+      const profiles=Object.entries(JOB_PROFILES).filter(([,v])=>v.group===g);
+      const color=jfColor(g);
+      return`<div class="ml-section"><div class="ml-section-title" style="color:${color};">📄 ${g} (${profiles.length} profiles)</div>
+        <table class="ml-table"><thead><tr><th>Profile ID</th><th>Name</th><th>Family</th><th>Level</th><th>Grade</th><th>#Pos</th></tr></thead>
+        <tbody>${profiles.map(([id,p])=>{const cnt=WORKERS.filter(w=>w.jp===id&&!w.vacant).length;
+          return`<tr><td class="ml-mono">${id}</td><td style="font-weight:600;">${p.name}</td>
+            <td style="font-size:10px;color:var(--text2);">${p.family}</td><td style="font-size:10px;">${p.level}</td>
+            <td><span class="ml-badge" style="background:${gradeColor(p.grade)}18;color:${gradeColor(p.grade)};">${p.grade}</span></td>
+            <td style="text-align:center;font-weight:700;">${cnt}</td></tr>`;}).join('')}</tbody></table></div>`;
+    }).join('');
+  }
+}
+
+// ═══════════════════════════════════════════════════
+// STORY
+// ═══════════════════════════════════════════════════
+let storyStep=0;
+function startStory(){storyStep=0;document.getElementById('story-overlay').style.display='flex';renderStory();}
+function renderStory(){
+  const s=STORY[storyStep];const isLast=storyStep===STORY.length-1;
+  if(s.c)switchConcept(s.c);
+  if(s.ot)switchOrgType(s.ot);
+  const dots=STORY.map((_,i)=>`<div class="sc-dot ${i===storyStep?'active':''}"></div>`).join('');
+  document.getElementById('story-card').innerHTML=`
+    <div class="sc-step">Step ${storyStep+1} of ${STORY.length}</div>
+    <span class="sc-icon">${s.icon}</span>
+    <div class="sc-title">${s.title}</div>
+    <div class="sc-body">${s.body}</div>
+    ${s.hl?`<div class="sc-hl">${s.hl}</div>`:''}
+    <div class="sc-footer">
+      <div class="sc-dots">${dots}</div>
+      <div class="sc-actions">
+        ${storyStep>0?`<button class="btn btn-outline" onclick="storyNav(-1)">← Back</button>`:''}
+        ${isLast?`<button class="btn btn-dark" onclick="closeStory()">Start exploring →</button>`:`<button class="btn btn-dark" onclick="storyNav(1)">Next →</button>`}
+        ${!isLast?`<button class="btn-dim" onclick="closeStory()">Skip</button>`:''}
+      </div>
+    </div>`;
+}
+function storyNav(d){storyStep=Math.max(0,Math.min(STORY.length-1,storyStep+d));renderStory();}
+function closeStory(){document.getElementById('story-overlay').style.display='none';resetAll();}
+
+// ═══════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════
+renderNav('playbook');
+document.getElementById('org-type-bar').style.display='flex';
+document.getElementById('ot-teach').style.display='none';
+buildChart();
+renderConceptIntro();
+setTimeout(startStory,500);
+</script>
+</body>
+</html>
